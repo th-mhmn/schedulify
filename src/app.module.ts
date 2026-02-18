@@ -6,9 +6,10 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BusinessesModule } from './businesses/businesses.module';
 import { ServicesModule } from './services/services.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, BusinessesModule, ServicesModule],
+  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, BusinessesModule, ServicesModule, BookingsModule],
   controllers: [AppController],
   providers: [AppService],
 })
