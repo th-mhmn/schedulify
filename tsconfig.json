@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
     "esModuleInterop": true,
+    "target": "ES2023",
     "strict": true,
     "isolatedModules": true,
     "declaration": true,
@@ -17,6 +21,7 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    "strictPropertyInitialization": false,
     "paths": {
       "@/*": ["./src/*"]
     }
