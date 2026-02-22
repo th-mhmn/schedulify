@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,7 +8,6 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { UsersService } from '@/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { SignInDto } from './dto/sign-in.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 @Injectable()

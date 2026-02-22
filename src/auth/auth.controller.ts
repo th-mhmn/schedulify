@@ -11,13 +11,13 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
-import { TransformDTO } from '../../_core/interceptors/transform-dto.interceptor';
 import { ResponseUserDto } from '@/users/dto/response-user.dto';
-import { CurrentUser } from '../../_core/decorators/current-user.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SignInDto } from './dto/sign-in.dto';
+import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
