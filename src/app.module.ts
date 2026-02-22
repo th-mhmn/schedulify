@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { BusinessesModule } from './businesses/businesses.module';
 import { ServicesModule } from './services/services.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { ResourceModule } from './resource/resource.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -15,6 +16,7 @@ import { BookingsModule } from './bookings/bookings.module';
     AuthModule,
     UsersModule,
     BusinessesModule,
+    ResourceModule,
     ServicesModule,
     BookingsModule,
   ],
