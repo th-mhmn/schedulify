@@ -4,3 +4,11 @@ interface IUserPayload {
   role: sting;
   isEmailActivated: boolean;
 }
+
+type IRole = 'user' | 'business_owner';
+
+declare namespace Express {
+  export interface Request {
+    user: IUserPayload;
+  }
+}
