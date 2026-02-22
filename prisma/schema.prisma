@@ -25,29 +25,16 @@ enum BookingStatus {
 }
 
 model User {
-  id              Int            @id @default(autoincrement())
-  email           String         @unique
+  id              Int        @id @default(autoincrement())
+  email           String     @unique
   passwordHash    String
-  role            Role           @default(USER)
+  role            Role       @default(USER)
   emailVerifiedAt DateTime?
-  refreshTokens   RefreshToken[]
+  refreshToken    String?
   businesses      Business[]
   bookings        Booking[]
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-}
-
-model RefreshToken {
-  id        String    @id @unique @default(uuid())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
-  tokenHash String
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([userId])
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
 model Business {
