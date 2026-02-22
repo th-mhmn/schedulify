@@ -23,10 +23,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(request: Request, payload: { userId: number }) {
+  async validate(request: Request, payload: { sub: number }) {
     return this.authService.verifyUserRefreshToken(
       request.cookies?.Refresh,
-      payload.userId,
+      payload.sub,
     );
   }
 }
