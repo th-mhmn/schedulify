@@ -2,22 +2,19 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '@/users/users.module';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { LocalStrategy } from './strategies/local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
     UsersModule,
-    JwtModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        global: true,
-        secret: configService.get<string>('JWT_ACCESS_SECRET'),
-        signOptions: { expiresIn: '15m' },
-      }),
-      inject: [ConfigService],
+    JwtModule.register({
+      global: true,
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy],
 })
 export class AuthModule {}
