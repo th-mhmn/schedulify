@@ -15,17 +15,19 @@ export class BusinessesService {
         where: { id: user.id },
         data: { role: 'BUSINESS_OWNER' },
       });
+      user = { ...user, role: 'BUSINESS_OWNER' } as any;
     }
-    const data: Prisma.BusinessCreateInput = {
-      name: dto.name,
-      timezone: dto.timezone,
-      owner: { connect: { id: user.id } },
-    };
+
     const business = await this.prisma.business.create({
-      data,
+      data: {
+        name: dto.name,
+        timezone: dto.timezone,
+        owner: { connect: { id: user.id } },
+      },
       include: { owner: true },
     });
-    return { business };
+
+    return { user, business };
   }
 
   async find(
@@ -54,10 +56,12 @@ export class BusinessesService {
   }
 
   async getUserBusinesses(user: IUserPayload) {
-    const businesses = await this.findManyBusinesses({
+    const businesses = await this.prisma.business.findMany({
       where: { ownerId: user.id },
+      include: { owner: true },
     });
-    return businesses;
+
+    return { user, businesses };
   }
 
   findAll() {
@@ -65,9 +69,13 @@ export class BusinessesService {
   }
 
   async findOne(id: number) {
-    const business = await this.find({ id });
+    const business = await this.prisma.business.findUnique({
+      where: { id },
+      include: { owner: true },
+    });
+
     if (!business) throw new NotFoundException('Business not found');
-    return business;
+    return { business };
   }
 
   update(id: number, updateBusinessDto: UpdateBusinessDto) {
