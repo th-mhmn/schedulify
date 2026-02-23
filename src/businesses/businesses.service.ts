@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { PrismaService } from '@/prisma.service';
@@ -26,6 +26,14 @@ export class BusinessesService {
       include: { owner: true },
     });
     return { business };
+  }
+
+  async find(
+    businessWhereUniqueInput: Prisma.BusinessWhereUniqueInput,
+  ): Promise<Business | null> {
+    return await this.prisma.business.findUnique({
+      where: businessWhereUniqueInput,
+    });
   }
 
   async findManyBusinesses(params: {
@@ -56,8 +64,10 @@ export class BusinessesService {
     return `This action returns all businesses`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} business`;
+  async findOne(id: number) {
+    const business = await this.find({ id });
+    if (!business) throw new NotFoundException('Business not found');
+    return business;
   }
 
   update(id: number, updateBusinessDto: UpdateBusinessDto) {

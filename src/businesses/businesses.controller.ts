@@ -3,10 +3,9 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BusinessesService } from './businesses.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
@@ -30,32 +29,14 @@ export class BusinessesController {
     return this.businessesService.create(createBusinessDto, user);
   }
 
-  @Get('me')
+  @Get('my')
   @UseGuards(JwtAuthGuard)
   myBusinesses(@CurrentUser() user: IUserPayload) {
     return this.businessesService.getUserBusinesses(user);
   }
 
-  @Get()
-  findAll() {
-    return this.businessesService.findAll();
-  }
-
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.businessesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateBusinessDto: UpdateBusinessDto,
-  ) {
-    return this.businessesService.update(+id, updateBusinessDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.businessesService.remove(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.businessesService.findOne(id);
   }
 }
