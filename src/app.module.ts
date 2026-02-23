@@ -8,6 +8,7 @@ import { BusinessesModule } from './businesses/businesses.module';
 import { ServicesModule } from './services/services.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { ResourceModule } from './resource/resource.module';
+import { WorkingHoursModule } from './working-hours/working-hours.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +20,7 @@ import { ResourceModule } from './resource/resource.module';
     ResourceModule,
     ServicesModule,
     BookingsModule,
+    WorkingHoursModule,
   ],
   controllers: [AppController],
   providers: [AppService],
