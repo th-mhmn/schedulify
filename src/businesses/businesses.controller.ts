@@ -13,7 +13,10 @@ import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { ResponseBusinessDto } from './dto/response-business.dto';
 
+@TransformDTO(ResponseBusinessDto)
 @Controller('businesses')
 export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}

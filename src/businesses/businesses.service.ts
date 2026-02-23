@@ -20,12 +20,11 @@ export class BusinessesService {
       timezone: dto.timezone,
       owner: { connect: { id: user.id } },
     };
-    return this.prisma.business.create({
+    const business = await this.prisma.business.create({
       data,
-      include: {
-        owner: true,
-      },
+      include: { owner: true },
     });
+    return { business };
   }
 
   findAll() {
