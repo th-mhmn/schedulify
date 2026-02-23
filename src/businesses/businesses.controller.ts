@@ -1,3 +1,4 @@
+import { ServicesService } from './../services/services.service';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import {
   Body,
@@ -26,11 +27,18 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { BusinessesService } from './businesses.service';
+import { CreateServiceDto } from '@/services/dto/create-service.dto';
+import { RoleGuard } from '@/auth/guards/role.guard';
+import { Roles } from '@/_core/decorators/roles.decorator';
+import { ResponseServiceDto } from '@/services/dto/response-service.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
 export class BusinessesController {
-  constructor(private readonly businessesService: BusinessesService) {}
+  constructor(
+    private readonly businessesService: BusinessesService,
+    private readonly servicesService: ServicesService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a business' })
   @ApiBearerAuth()
@@ -65,5 +73,16 @@ export class BusinessesController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.businessesService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @Post(':id/services')
+  @TransformDTO(ResponseServiceDto)
+  createService(
+    @Body() createServiceDto: CreateServiceDto,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.servicesService.create(id, createServiceDto);
   }
 }
