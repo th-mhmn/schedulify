@@ -5,7 +5,7 @@ interface IUserPayload {
   isEmailActivated: boolean;
 }
 
-type IRole = 'user' | 'business_owner';
+type IRole = 'USER' | 'BUSINESS_OWNER';
 
 declare namespace Express {
   export interface Request {

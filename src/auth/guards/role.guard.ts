@@ -30,10 +30,10 @@ export class RoleGuard implements CanActivate {
 
     if (!requiredRoles) return true;
     if (requiredRoles.length === 0) return true;
-    if (requiredRoles.includes('user') && currentUser.role === 'user')
+    if (requiredRoles.includes('USER') && currentUser.role === 'USER')
       return true;
     if (
-      requiredRoles.includes('business_owner') &&
+      requiredRoles.includes('BUSINESS_OWNER') &&
       currentUser.role === 'BUSINESS_OWNER'
     ) {
       const userId = currentUser.id;
