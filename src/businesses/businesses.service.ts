@@ -1,11 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
+import { PrismaService } from '@/prisma.service';
+import { Prisma } from '@/generated/prisma/client';
 
 @Injectable()
 export class BusinessesService {
-  create(createBusinessDto: CreateBusinessDto) {
-    return 'This action adds a new business';
+  constructor(private prisma: PrismaService) {}
+
+  async create(dto: CreateBusinessDto, user: IUserPayload) {
+    if (user.role === 'USER') {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'BUSINESS_OWNER' },
+      });
+    }
+    const data: Prisma.BusinessCreateInput = {
+      name: dto.name,
+      timezone: dto.timezone,
+      owner: { connect: { id: user.id } },
+    };
+    return this.prisma.business.create({
+      data,
+      include: {
+        owner: true,
+      },
+    });
   }
 
   findAll() {
