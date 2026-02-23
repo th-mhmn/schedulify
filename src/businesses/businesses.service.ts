@@ -3,6 +3,7 @@ import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { PrismaService } from '@/prisma.service';
 import { Prisma } from '@/generated/prisma/client';
+import { Business } from './entities/business.entity';
 
 @Injectable()
 export class BusinessesService {
@@ -25,6 +26,30 @@ export class BusinessesService {
       include: { owner: true },
     });
     return { business };
+  }
+
+  async findManyBusinesses(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.BusinessWhereUniqueInput;
+    where?: Prisma.BusinessWhereInput;
+    orderBy?: Prisma.BusinessOrderByWithRelationInput;
+  }): Promise<Business[]> {
+    const { skip, take, cursor, where, orderBy } = params;
+    return await this.prisma.business.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+    });
+  }
+
+  async getUserBusinesses(user: IUserPayload) {
+    const businesses = await this.findManyBusinesses({
+      where: { ownerId: user.id },
+    });
+    return businesses;
   }
 
   findAll() {

@@ -16,11 +16,11 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import { ResponseBusinessDto } from './dto/response-business.dto';
 
-@TransformDTO(ResponseBusinessDto)
 @Controller('businesses')
 export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}
 
+  @TransformDTO(ResponseBusinessDto)
   @Post()
   @UseGuards(JwtAuthGuard)
   create(
@@ -28,6 +28,12 @@ export class BusinessesController {
     @CurrentUser() user: IUserPayload,
   ) {
     return this.businessesService.create(createBusinessDto, user);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  myBusinesses(@CurrentUser() user: IUserPayload) {
+    return this.businessesService.getUserBusinesses(user);
   }
 
   @Get()
