@@ -1,34 +1,76 @@
-import { Expose, Transform, Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { UserPayloadDto } from '@/users/dto/user-payload.dto';
 
 export class OwnerDto {
+  @ApiProperty({ example: 1 })
   @Expose()
-  id: string;
+  id: number;
+
+  @ApiProperty({ example: 'owner@acme.com' })
   @Expose()
   email: string;
+
+  @ApiProperty({ example: 'BUSINESS_OWNER' })
   @Expose()
   role: string;
 }
 
 export class BusinessDto {
+  @ApiProperty({ example: 10 })
   @Expose()
-  id: string;
+  id: number;
+
+  @ApiProperty({ example: 'Acme Inc' })
   @Expose()
   name: string;
+
+  @ApiProperty({ example: 'Asia/Baku' })
   @Expose()
   timezone: string;
+
+  @ApiProperty({ type: () => OwnerDto })
   @Expose()
   @Type(() => OwnerDto)
   owner: OwnerDto;
+
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    example: '2026-02-23T10:20:30.000Z',
+  })
   @Expose()
   createdAt: Date;
+
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    example: '2026-02-23T10:20:30.000Z',
+  })
   @Expose()
   updatedAt: Date;
 }
 
 export class ResponseBusinessDto {
+  @ApiProperty({ type: () => UserPayloadDto })
   @Expose()
-  owner: IUserPayload;
+  @Type(() => UserPayloadDto)
+  user: UserPayloadDto;
+
+  @ApiProperty({ type: () => BusinessDto })
   @Expose()
   @Type(() => BusinessDto)
   business: BusinessDto;
+}
+
+export class ResponseBusinessesDto {
+  @ApiProperty({ type: () => UserPayloadDto })
+  @Expose()
+  @Type(() => UserPayloadDto)
+  user: UserPayloadDto;
+
+  @ApiProperty({ type: () => BusinessDto, isArray: true })
+  @Expose()
+  @Type(() => BusinessDto)
+  businesses: BusinessDto[];
 }
