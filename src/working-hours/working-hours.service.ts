@@ -1,5 +1,5 @@
 import { PrismaService } from '@/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { WeekScheduleDto } from './dto/working-hours.dto';
 import * as _ from 'lodash';
 
@@ -19,6 +19,12 @@ export class WorkingHoursService {
   }
 
   async getWeeklySchedule(businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+
+    if (!business) throw new NotFoundException('Business not found');
+
     const weeklySchedule = await this.prisma.workingHours.findMany({
       where: { businessId },
     });
