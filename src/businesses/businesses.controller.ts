@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -31,6 +32,8 @@ import { CreateServiceDto } from '@/services/dto/create-service.dto';
 import { RoleGuard } from '@/auth/guards/role.guard';
 import { Roles } from '@/_core/decorators/roles.decorator';
 import { ResponseServiceDto } from '@/services/dto/response-service.dto';
+import { WorkingHoursService } from '@/working-hours/working-hours.service';
+import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -38,6 +41,7 @@ export class BusinessesController {
   constructor(
     private readonly businessesService: BusinessesService,
     private readonly servicesService: ServicesService,
+    private readonly workingHourService: WorkingHoursService,
   ) {}
 
   @ApiOperation({ summary: 'Create a business' })
@@ -85,4 +89,17 @@ export class BusinessesController {
   ) {
     return this.servicesService.create(id, createServiceDto);
   }
+
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Put(':id/working-hours')
+  @Roles('BUSINESS_OWNER')
+  setWorkingHours(
+    @Body() dto: WeekScheduleDto,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.workingHourService.create(dto, id);
+  }
+
+  @Get(':id/working-hours')
+  getWorkingHours() {}
 }

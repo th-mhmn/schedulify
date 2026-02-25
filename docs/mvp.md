@@ -86,6 +86,11 @@ auth, roles, booking rules, background jobs, real-time events, and clean structu
 
 ## Notifications (MVP)
 
+## Working Hours
+
+day 0 = Monday
+Time Resolution: 5 min
+
 ### Events to send
 
 - Booking created → confirmation notification
