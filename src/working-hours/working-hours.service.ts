@@ -6,7 +6,8 @@ import { WeekScheduleDto } from './dto/working-hours.dto';
 @Injectable()
 export class WorkingHoursService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(dto: WeekScheduleDto, businessId: number) {
+
+  async setWeeklySchedule(dto: WeekScheduleDto, businessId: number) {
     await this.prisma.workingHours.deleteMany({ where: { businessId } });
     const payload = {
       days: dto.days.map((d) => ({ ...d, businessId })),

@@ -97,7 +97,7 @@ export class BusinessesController {
     @Body() dto: WeekScheduleDto,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.workingHourService.create(dto, id);
+    return this.workingHourService.setWeeklySchedule(dto, id);
   }
 
   @Get(':id/working-hours')
