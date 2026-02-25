@@ -5,9 +5,6 @@ export class ResponseWorkingHoursDto {
   id: number;
 
   @Expose()
-  businessId: number;
-
-  @Expose()
   @Transform(({ obj }) => convertDays(obj.dayOfWeek))
   dayOfWeek: string;
 
