@@ -34,6 +34,7 @@ import { Roles } from '@/_core/decorators/roles.decorator';
 import { ResponseServiceDto } from '@/services/dto/response-service.dto';
 import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
+import { ResponseWorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -91,6 +92,7 @@ export class BusinessesController {
   }
 
   @UseGuards(JwtAuthGuard, RoleGuard)
+  @TransformDTO(ResponseWorkingHoursDto)
   @Put(':id/working-hours')
   @Roles('BUSINESS_OWNER')
   setWorkingHours(
@@ -100,6 +102,9 @@ export class BusinessesController {
     return this.workingHourService.setWeeklySchedule(dto, id);
   }
 
+  @TransformDTO(ResponseWorkingHoursDto)
   @Get(':id/working-hours')
-  getWorkingHours() {}
+  getWorkingHours(@Param('id', ParseIntPipe) id: number) {
+    return this.workingHourService.getWeeklySchedule(id);
+  }
 }

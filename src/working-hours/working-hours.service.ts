@@ -1,7 +1,7 @@
-import { Prisma, WorkingHours } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { WeekScheduleDto } from './dto/working-hours.dto';
+import * as _ from 'lodash';
 
 @Injectable()
 export class WorkingHoursService {
@@ -12,8 +12,16 @@ export class WorkingHoursService {
     const payload = {
       days: dto.days.map((d) => ({ ...d, businessId })),
     };
-    return await this.prisma.workingHours.createManyAndReturn({
+    const weeklySchedule = await this.prisma.workingHours.createManyAndReturn({
       data: payload.days,
     });
+    return _.sortBy(weeklySchedule, 'dayOfWeek');
+  }
+
+  async getWeeklySchedule(businessId: number) {
+    const weeklySchedule = await this.prisma.workingHours.findMany({
+      where: { businessId },
+    });
+    return _.sortBy(weeklySchedule, 'dayOfWeek');
   }
 }
