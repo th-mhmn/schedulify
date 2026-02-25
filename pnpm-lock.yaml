@@ -50,6 +50,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      lodash:
+        specifier: ^4.17.23
+        version: 4.17.23
       passport:
         specifier: ^0.7.0
         version: 0.7.0
