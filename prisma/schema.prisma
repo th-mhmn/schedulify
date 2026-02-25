@@ -86,26 +86,26 @@ model Booking {
   businessId  Int
   service     Service       @relation(fields: [serviceId], references: [id])
   serviceId   Int
-  startsAt    DateTime
-  endsAt      DateTime
+  startTime   DateTime
+  endTime     DateTime
   status      BookingStatus @default(CONFIRMED)
   cancelledAt DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  @@index([businessId, startsAt])
-  @@index([userId, startsAt])
+  @@index([businessId, startTime])
+  @@index([userId, startTime])
 }
 
 model AvailabilityBlock {
   id         Int       @id @default(autoincrement())
   business   Business? @relation(fields: [businessId], references: [id])
   businessId Int?
-  startsAt   DateTime
-  endsAt     DateTime
+  startTime  DateTime
+  endTime    DateTime
   reason     String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  @@index([businessId, startsAt])
+  @@index([businessId, startTime])
 }
