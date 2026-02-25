@@ -38,16 +38,17 @@ model User {
 }
 
 model Business {
-  id           Int            @id @default(autoincrement())
-  owner        User           @relation(fields: [ownerId], references: [id])
-  ownerId      Int
-  name         String
-  timezone     String
-  services     Service[]
-  bookings     Booking[]
-  workingHours WorkingHours[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                 Int                 @id @default(autoincrement())
+  owner              User                @relation(fields: [ownerId], references: [id])
+  ownerId            Int
+  name               String
+  timezone           String
+  services           Service[]
+  bookings           Booking[]
+  workingHours       WorkingHours[]
+  availabilityBlocks AvailabilityBlock[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 model Service {
@@ -94,4 +95,17 @@ model Booking {
 
   @@index([businessId, startsAt])
   @@index([userId, startsAt])
+}
+
+model AvailabilityBlock {
+  id         Int       @id @default(autoincrement())
+  business   Business? @relation(fields: [businessId], references: [id])
+  businessId Int?
+  startsAt   DateTime
+  endsAt     DateTime
+  reason     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([businessId, startsAt])
 }
