@@ -35,6 +35,9 @@ import { ResponseServiceDto } from '@/services/dto/response-service.dto';
 import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
 import { ResponseWorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
+import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
+import { BlocksService } from '@/blocks/blocks.service';
+import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -43,6 +46,7 @@ export class BusinessesController {
     private readonly businessesService: BusinessesService,
     private readonly servicesService: ServicesService,
     private readonly workingHourService: WorkingHoursService,
+    private readonly blocksService: BlocksService,
   ) {}
 
   @ApiOperation({ summary: 'Create a business' })
@@ -106,5 +110,16 @@ export class BusinessesController {
   @Get(':id/working-hours')
   getWorkingHours(@Param('id', ParseIntPipe) id: number) {
     return this.workingHourService.getWeeklySchedule(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @TransformDTO(ResponseBlockDto)
+  @Post(':id/blocks')
+  addAvailabilityBlocks(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AvailabilityBlockDto,
+  ) {
+    return this.blocksService.create(dto, id);
   }
 }
