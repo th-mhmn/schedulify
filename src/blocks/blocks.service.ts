@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
 import { PrismaService } from '@/prisma.service';
 import { TimeRangeQueryDto } from '@/businesses/dto/time-range-query.dto';
@@ -32,6 +36,8 @@ export class BlocksService {
     const blocks = await this.prisma.availabilityBlock.findMany({
       where: { startTime: { gte: query?.from }, endTime: { lte: query?.to } },
     });
+    if (blocks.length === 0)
+      throw new NotFoundException('No blocks found on this time period');
     return blocks;
   }
 
