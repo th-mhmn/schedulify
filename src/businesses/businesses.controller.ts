@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -38,6 +39,7 @@ import { ResponseWorkingHoursDto } from '@/working-hours/dto/response-working-ho
 import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
 import { BlocksService } from '@/blocks/blocks.service';
 import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
+import { TimeRangeQueryDto } from './dto/time-range-query.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -121,5 +123,13 @@ export class BusinessesController {
     @Body() dto: AvailabilityBlockDto,
   ) {
     return this.blocksService.create(dto, id);
+  }
+
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @Get(':id/blocks')
+  @TransformDTO(ResponseBlockDto)
+  getBlocks(@Query() query: TimeRangeQueryDto) {
+    return this.blocksService.get(query);
   }
 }

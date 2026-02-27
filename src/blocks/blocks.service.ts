@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
 import { PrismaService } from '@/prisma.service';
+import { TimeRangeQueryDto } from '@/businesses/dto/time-range-query.dto';
 
 @Injectable()
 export class BlocksService {
@@ -25,5 +26,12 @@ export class BlocksService {
         businessId,
       },
     });
+  }
+
+  async get(query?: TimeRangeQueryDto) {
+    const blocks = await this.prisma.availabilityBlock.findMany({
+      where: { startTime: { gte: query?.from }, endTime: { lte: query?.to } },
+    });
+    return blocks;
   }
 }
