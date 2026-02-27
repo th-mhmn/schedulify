@@ -34,4 +34,8 @@ export class BlocksService {
     });
     return blocks;
   }
+
+  async delete(id: number) {
+    return await this.prisma.availabilityBlock.delete({ where: { id } });
+  }
 }
