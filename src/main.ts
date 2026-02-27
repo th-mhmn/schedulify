@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalExceptionFilter } from './_core/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // throws error on extra props
     }),
   );
+
+  // * Global Exception Filter
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // * App Versioning
   app.enableVersioning({
