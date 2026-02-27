@@ -39,6 +39,14 @@ export class ResourceService {
         if (!business) throw new BadRequestException('Business not found');
         return business.ownerId;
       }
+      case 'blocks': {
+        const block = await this.prisma.availabilityBlock.findUnique({
+          where: { id },
+          include: { business: true },
+        });
+        if (!block) throw new BadRequestException('Block not found');
+        return block.business?.ownerId;
+      }
       default:
         throw new BadRequestException('Resource not found');
     }
