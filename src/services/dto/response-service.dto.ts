@@ -1,6 +1,5 @@
-import { BusinessDto } from '@/businesses/dto/response-business.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Transform, Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 export class ServiceDto {
   @Expose()
@@ -20,9 +19,16 @@ export class ServiceDto {
   priceCents: number;
 }
 
-export class ResponseServiceDto {
+export class ResponseCreateServiceDto {
   @Expose()
   @ApiProperty({ type: () => ServiceDto })
   @Type(() => ServiceDto)
   service: ServiceDto;
+}
+
+export class ResponseServiceDto {
+  @Expose()
+  @ApiProperty({ type: () => ServiceDto })
+  @Type(() => ServiceDto)
+  services: ServiceDto[];
 }

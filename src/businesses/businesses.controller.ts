@@ -32,7 +32,10 @@ import { BusinessesService } from './businesses.service';
 import { CreateServiceDto } from '@/services/dto/create-service.dto';
 import { RoleGuard } from '@/auth/guards/role.guard';
 import { Roles } from '@/_core/decorators/roles.decorator';
-import { ResponseServiceDto } from '@/services/dto/response-service.dto';
+import {
+  ResponseCreateServiceDto,
+  ResponseServiceDto,
+} from '@/services/dto/response-service.dto';
 import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
 import { ResponseWorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
@@ -89,12 +92,18 @@ export class BusinessesController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Post(':id/services')
-  @TransformDTO(ResponseServiceDto)
+  @TransformDTO(ResponseCreateServiceDto)
   createService(
     @Body() createServiceDto: CreateServiceDto,
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.servicesService.create(id, createServiceDto);
+  }
+
+  @Get(':id/services')
+  @TransformDTO(ResponseServiceDto)
+  getServices(@Param('id', ParseIntPipe) id: number) {
+    return this.servicesService.findByBusinessId(id);
   }
 
   @UseGuards(JwtAuthGuard, RoleGuard)

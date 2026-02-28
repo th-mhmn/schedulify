@@ -49,6 +49,18 @@ export class ServicesService {
     return workingHours;
   }
 
+  async findByBusinessId(businessId: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
+    const services = await this.prisma.service.findMany({
+      where: { businessId },
+    });
+    return { services };
+  }
+
   findAll() {
     return `This action returns all services`;
   }
