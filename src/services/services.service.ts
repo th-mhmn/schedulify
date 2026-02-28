@@ -34,10 +34,18 @@ export class ServicesService {
       throw new NotFoundException('Service not found');
 
     const dayStart = DateTime.fromISO(date).setZone(business.timezone);
+    const dayEnd = dayStart.plus({ days: 1 });
     const dayOfWeek = dayStart.weekday - 1;
     const workingHours = await this.prisma.workingHours.findMany({
       where: { businessId, dayOfWeek },
     });
+    const blocks = await this.prisma.availabilityBlock.findMany({
+      where: {
+        startTime: { lt: dayEnd },
+        endTime: { gt: dayStart },
+      },
+    });
+
     return workingHours;
   }
 
