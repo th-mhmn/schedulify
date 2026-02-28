@@ -40,6 +40,7 @@ import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
 import { BlocksService } from '@/blocks/blocks.service';
 import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
 import { TimeRangeQueryDto } from './dto/time-range-query.dto';
+import { DateQueryDto } from './dto/date-query-dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -50,7 +51,6 @@ export class BusinessesController {
     private readonly workingHourService: WorkingHoursService,
     private readonly blocksService: BlocksService,
   ) {}
-
   @ApiOperation({ summary: 'Create a business' })
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -131,5 +131,19 @@ export class BusinessesController {
   @TransformDTO(ResponseBlockDto)
   getBlocks(@Query() query: TimeRangeQueryDto) {
     return this.blocksService.get(query);
+  }
+
+  @Get(':id/services/:serviceId/availability')
+  @TransformDTO(ResponseWorkingHoursDto)
+  getAvailability(
+    @Param('id', ParseIntPipe) businessId: number,
+    @Param('serviceId', ParseIntPipe) serviceId: number,
+    @Query() query: DateQueryDto,
+  ) {
+    return this.servicesService.getAvailability(
+      businessId,
+      serviceId,
+      query.date,
+    );
   }
 }

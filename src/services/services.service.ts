@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ServicesService {
@@ -18,6 +19,26 @@ export class ServicesService {
     });
 
     return { service };
+  }
+
+  async getAvailability(businessId: number, serviceId: number, date: string) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
+    const service = await this.prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+    if (!service || service.businessId !== businessId)
+      throw new NotFoundException('Service not found');
+
+    const dayStart = DateTime.fromISO(date).setZone(business.timezone);
+    const dayOfWeek = dayStart.weekday - 1;
+    const workingHours = await this.prisma.workingHours.findMany({
+      where: { businessId, dayOfWeek },
+    });
+    return workingHours;
   }
 
   findAll() {
