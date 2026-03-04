@@ -3,6 +3,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
 import { DateTime } from 'luxon';
+import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
 
 @Injectable()
 export class ServicesService {
@@ -34,19 +35,13 @@ export class ServicesService {
       throw new NotFoundException('Service not found');
 
     const dayStart = DateTime.fromISO(date).setZone(business.timezone);
-    const dayEnd = dayStart.plus({ days: 1 });
     const dayOfWeek = dayStart.weekday - 1;
     const workingHours = await this.prisma.workingHours.findMany({
       where: { businessId, dayOfWeek },
     });
-    const blocks = await this.prisma.availabilityBlock.findMany({
-      where: {
-        startTime: { lt: dayEnd },
-        endTime: { gt: dayStart },
-      },
-    });
-
-    return workingHours;
+    if (workingHours.length === 0) return { workingHours };
+    const reserved = await this.checkReserved(business.timezone, date);
+    return { workingHours, reserved };
   }
 
   async findByBusinessId(businessId: number) {
@@ -75,5 +70,34 @@ export class ServicesService {
 
   remove(id: number) {
     return `This action removes a #${id} service`;
+  }
+
+  async checkReserved(
+    timezone: string,
+    start: string,
+    durationMinutes?: number,
+  ): Promise<{ blocks: AvailabilityBlock[]; bookings: Booking[] } | null> {
+    const startDate = DateTime.fromISO(start).setZone(timezone);
+    const endDate = startDate.plus(
+      durationMinutes ? { minutes: durationMinutes } : { days: 1 },
+    );
+
+    const blocks = await this.prisma.availabilityBlock.findMany({
+      where: {
+        startTime: { lte: endDate.toISO()! },
+        endTime: { gte: startDate.toISO()! },
+      },
+    });
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        startTime: { lte: endDate.toISO()! },
+        endTime: { gte: startDate.toISO()! },
+        status: 'CONFIRMED',
+      },
+    });
+
+    if (blocks.length === 0 && bookings.length === 0) return null;
+    return { blocks: blocks, bookings };
   }
 }

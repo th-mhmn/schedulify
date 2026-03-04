@@ -1,9 +1,6 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
-export class ResponseWorkingHoursDto {
-  @Expose()
-  id: number;
-
+export class WorkingHoursDto {
   @Expose()
   @Transform(({ obj }) => convertDays(obj.dayOfWeek))
   dayOfWeek: string;
@@ -13,9 +10,6 @@ export class ResponseWorkingHoursDto {
 
   @Expose()
   endTime: string;
-
-  @Expose()
-  createdAt: string;
 }
 
 function convertDays(index: number) {

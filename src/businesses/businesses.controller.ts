@@ -38,12 +38,13 @@ import {
 } from '@/services/dto/response-service.dto';
 import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
-import { ResponseWorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
+import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
 import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
 import { BlocksService } from '@/blocks/blocks.service';
 import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
 import { TimeRangeQueryDto } from './dto/time-range-query.dto';
 import { DateQueryDto } from './dto/date-query-dto';
+import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -107,7 +108,7 @@ export class BusinessesController {
   }
 
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @TransformDTO(ResponseWorkingHoursDto)
+  @TransformDTO(WorkingHoursDto)
   @Put(':id/working-hours')
   @Roles('BUSINESS_OWNER')
   setWorkingHours(
@@ -117,7 +118,7 @@ export class BusinessesController {
     return this.workingHourService.setWeeklySchedule(dto, id);
   }
 
-  @TransformDTO(ResponseWorkingHoursDto)
+  @TransformDTO(WorkingHoursDto)
   @Get(':id/working-hours')
   getWorkingHours(@Param('id', ParseIntPipe) id: number) {
     return this.workingHourService.getWeeklySchedule(id);
@@ -143,7 +144,7 @@ export class BusinessesController {
   }
 
   @Get(':id/services/:serviceId/availability')
-  @TransformDTO(ResponseWorkingHoursDto)
+  @TransformDTO(ResponseAvailabilityDto)
   getAvailability(
     @Param('id', ParseIntPipe) businessId: number,
     @Param('serviceId', ParseIntPipe) serviceId: number,
