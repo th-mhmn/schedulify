@@ -1,7 +1,7 @@
 import { getHours } from '@/_core/utils/getHour';
-import { Booking } from '@/generated/prisma/client';
 import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
 import { Expose, Transform, Type } from 'class-transformer';
+import { Booking } from '@/bookings/dto/response-booking.dto';
 
 class Block {
   @Expose()
@@ -22,6 +22,7 @@ class ReservedDto {
   blocks: Block[];
 
   @Expose()
+  @Type(() => Booking)
   bookings: Booking[];
 }
 
