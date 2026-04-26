@@ -14,7 +14,10 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
-import { ResponseBookingDto } from './dto/response-booking.dto';
+import {
+  ResponseBookingDto,
+  ResponseUserBookingsDto,
+} from './dto/response-booking.dto';
 
 @Controller('bookings')
 export class BookingsController {
@@ -28,6 +31,13 @@ export class BookingsController {
     @CurrentUser() user: IUserPayload,
   ) {
     return this.bookingsService.create(createBookingDto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my')
+  @TransformDTO(ResponseUserBookingsDto)
+  findUserBookings(@CurrentUser() user: IUserPayload) {
+    return this.bookingsService.findUserBookings(user.id);
   }
 
   @Get()

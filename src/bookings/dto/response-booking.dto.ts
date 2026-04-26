@@ -25,3 +25,9 @@ export class ResponseBookingDto {
   @Type(() => Booking)
   booking: Booking;
 }
+
+export class ResponseUserBookingsDto {
+  @Expose()
+  @Type(() => Booking)
+  bookings: Booking[];
+}

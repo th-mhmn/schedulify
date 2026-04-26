@@ -106,6 +106,11 @@ export class BookingsService {
     );
   }
 
+  async findUserBookings(userId: number) {
+    const bookings = await this.prisma.booking.findMany({ where: { userId } });
+    return { bookings };
+  }
+
   findAll() {
     return `This action returns all bookings`;
   }
