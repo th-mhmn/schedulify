@@ -111,6 +111,26 @@ export class BookingsService {
     return { bookings };
   }
 
+  async findByBusinessId(businessId: number, date: string) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    const dayStart = DateTime.fromISO(date).setZone(business?.timezone);
+    const dayEnd = dayStart.plus({ days: 1 });
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        businessId,
+        AND: {
+          startTime: { gte: dayStart.toISO()! },
+          endTime: { lte: dayEnd.toISO()! },
+        },
+      },
+    });
+
+    return { bookings };
+  }
+
   findAll() {
     return `This action returns all bookings`;
   }

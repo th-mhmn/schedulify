@@ -20,6 +20,17 @@ export class Booking {
   status: string;
 }
 
+export class OwnerBooking extends Booking {
+  @Expose()
+  cancelledAt: string;
+
+  @Expose()
+  createdAt: string;
+
+  @Expose()
+  updatedAt: string;
+}
+
 export class ResponseBookingDto {
   @Expose()
   @Type(() => Booking)
@@ -30,4 +41,10 @@ export class ResponseUserBookingsDto {
   @Expose()
   @Type(() => Booking)
   bookings: Booking[];
+}
+
+export class ResponseOwnerBookingsDto {
+  @Expose()
+  @Type(() => OwnerBooking)
+  bookings: OwnerBooking[];
 }

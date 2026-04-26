@@ -45,6 +45,8 @@ import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
 import { TimeRangeQueryDto } from './dto/time-range-query.dto';
 import { DateQueryDto } from './dto/date-query-dto';
 import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
+import { BookingsService } from '@/bookings/bookings.service';
+import { ResponseOwnerBookingsDto } from '@/bookings/dto/response-booking.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -54,6 +56,7 @@ export class BusinessesController {
     private readonly servicesService: ServicesService,
     private readonly workingHourService: WorkingHoursService,
     private readonly blocksService: BlocksService,
+    private readonly bookingsService: BookingsService,
   ) {}
   @ApiOperation({ summary: 'Create a business' })
   @ApiBearerAuth()
@@ -155,5 +158,16 @@ export class BusinessesController {
       serviceId,
       query.date,
     );
+  }
+
+  @Get(':id/bookings')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @TransformDTO(ResponseOwnerBookingsDto)
+  getBookings(
+    @Param('id', ParseIntPipe) businessId: number,
+    @Query() query: DateQueryDto,
+  ) {
+    return this.bookingsService.findByBusinessId(businessId, query.date);
   }
 }
