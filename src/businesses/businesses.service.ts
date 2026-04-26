@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { PrismaService } from '@/prisma.service';
@@ -10,6 +14,16 @@ export class BusinessesService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateBusinessDto, user: IUserPayload) {
+    const { name, timezone } = dto;
+
+    const existingByName = await this.prisma.business.findFirst({
+      where: { name },
+    });
+    if (existingByName)
+      throw new BadRequestException(
+        'A business already exists with the given name',
+      );
+
     if (user.role === 'USER') {
       await this.prisma.user.update({
         where: { id: user.id },
@@ -20,8 +34,8 @@ export class BusinessesService {
 
     const business = await this.prisma.business.create({
       data: {
-        name: dto.name,
-        timezone: dto.timezone,
+        name,
+        timezone,
         owner: { connect: { id: user.id } },
       },
       include: { owner: true },
