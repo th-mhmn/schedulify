@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
@@ -10,6 +14,14 @@ export class ServicesService {
   constructor(private readonly prisma: PrismaService) {}
   async create(businessId: number, dto: CreateServiceDto) {
     const { durationMinutes, name, priceCents } = dto;
+    const existingByName = await this.prisma.service.findFirst({
+      where: { name },
+    });
+    if (existingByName)
+      throw new BadRequestException(
+        'A service already exists with the given name',
+      );
+
     const service = await this.prisma.service.create({
       data: {
         name,
