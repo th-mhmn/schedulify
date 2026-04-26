@@ -79,8 +79,6 @@ export class BookingsService {
       service.durationMinutes,
     );
 
-    const latestStart = closeAt.minus({ minutes: service.durationMinutes });
-
     if (!reserved) {
       const end = startDate.plus({ minutes: service.durationMinutes });
 
@@ -89,8 +87,8 @@ export class BookingsService {
           userId,
           businessId,
           serviceId,
-          startTime: startDate.toISO()!,
-          endTime: end.toISO()!,
+          startTime: startDate.toJSDate(),
+          endTime: end.toJSDate(),
         },
       });
       return { booking };
