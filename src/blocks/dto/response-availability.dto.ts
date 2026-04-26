@@ -1,15 +1,15 @@
 import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
 import { Expose, Transform, Type } from 'class-transformer';
 import { Booking } from '@/bookings/dto/response-booking.dto';
-import { formatDateToHour } from '@/_core/utils/date';
+import { formatUtcToHour } from '@/_core/utils/date';
 
 class Block {
   @Expose()
-  @Transform(({ obj }) => formatDateToHour(obj.startTime))
+  @Transform(({ obj }) => formatUtcToHour(obj.startTime))
   startTime: string;
 
   @Expose()
-  @Transform(({ obj }) => formatDateToHour(obj.endTime))
+  @Transform(({ obj }) => formatUtcToHour(obj.endTime))
   endTime: string;
 
   @Expose()

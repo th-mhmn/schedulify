@@ -9,7 +9,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
 import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
-import { formatDateToHour } from '@/_core/utils/date';
+import { formatDateTimeToHour } from '@/_core/utils/date';
 
 @Injectable()
 export class ServicesService {
@@ -84,7 +84,7 @@ export class ServicesService {
     );
 
     const formattedCandidates = candidates.map((c) =>
-      formatDateToHour(c.setZone(business.timezone)),
+      formatDateTimeToHour(c.setZone(business.timezone)),
     );
 
     const reserved = await this.checkReserved(business.timezone, date);
