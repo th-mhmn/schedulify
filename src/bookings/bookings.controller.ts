@@ -13,6 +13,8 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { ResponseBookingDto } from './dto/response-booking.dto';
 
 @Controller('bookings')
 export class BookingsController {
@@ -20,6 +22,7 @@ export class BookingsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @TransformDTO(ResponseBookingDto)
   create(
     @Body() createBookingDto: CreateBookingDto,
     @CurrentUser() user: IUserPayload,
