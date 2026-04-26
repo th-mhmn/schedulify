@@ -1,6 +1,5 @@
 import {
-  BadRequestException,
-  ForbiddenException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -26,7 +25,7 @@ export class BookingsService {
     if (!business) throw new NotFoundException('Business not found');
 
     if (business.ownerId === userId)
-      throw new ForbiddenException(
+      throw new ConflictException(
         'You cannot book a reservation for your own service',
       );
 
@@ -48,7 +47,7 @@ export class BookingsService {
     });
 
     if (!workingHours)
-      throw new BadRequestException('Business is closed on this day');
+      throw new ConflictException('Business is closed on this day');
 
     const { day, month, year } = startDate;
     const start_hour_minute = workingHours.startTime.split(':');
@@ -71,7 +70,7 @@ export class BookingsService {
     });
 
     if (closeAt < endDate || openAt > startDate)
-      throw new BadRequestException('Business is closed on this time');
+      throw new ConflictException('Outside working hours');
 
     const reserved = await this.servicesService.checkReserved(
       business?.timezone,
@@ -95,11 +94,11 @@ export class BookingsService {
     }
 
     if (reserved.blocks.length > 0)
-      throw new BadRequestException(
+      throw new ConflictException(
         'The owner has blocked this time span for reservations',
       );
 
-    throw new BadRequestException(
+    throw new ConflictException(
       'There is another reservation already booked on this time',
     );
   }
