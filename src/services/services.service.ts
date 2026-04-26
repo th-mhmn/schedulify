@@ -96,20 +96,20 @@ export class ServicesService {
 
     const blocks = await this.prisma.availabilityBlock.findMany({
       where: {
-        startTime: { lte: endDate.toISO()! },
-        endTime: { gte: startDate.toISO()! },
+        startTime: { lt: endDate.toISO()! },
+        endTime: { gt: startDate.toISO()! },
       },
     });
 
     const bookings = await this.prisma.booking.findMany({
       where: {
-        startTime: { lte: endDate.toISO()! },
-        endTime: { gte: startDate.toISO()! },
+        startTime: { lt: endDate.toISO()! },
+        endTime: { gt: startDate.toISO()! },
         status: 'CONFIRMED',
       },
     });
 
     if (blocks.length === 0 && bookings.length === 0) return null;
-    return { blocks: blocks, bookings };
+    return { blocks, bookings };
   }
 }
