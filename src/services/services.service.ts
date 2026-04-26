@@ -10,7 +10,6 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
 import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
 import { formatDateToHour } from '@/_core/utils/date';
-import { formatDateToHour } from './../_core/utils/date';
 
 @Injectable()
 export class ServicesService {
