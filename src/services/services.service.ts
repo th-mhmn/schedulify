@@ -17,7 +17,7 @@ export class ServicesService {
   async create(businessId: number, dto: CreateServiceDto) {
     const { durationMinutes, name, priceCents } = dto;
     const existingByName = await this.prisma.service.findFirst({
-      where: { name },
+      where: { name, businessId },
     });
     if (existingByName)
       throw new BadRequestException(
