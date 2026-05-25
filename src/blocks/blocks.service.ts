@@ -17,7 +17,11 @@ export class BlocksService {
     const endTimeUTC = new Date(dtoEndTime);
     const blocksOverlap = Boolean(
       await this.prisma.availabilityBlock.findFirst({
-        where: { endTime: { gt: startTimeUTC }, startTime: { lt: endTimeUTC } },
+        where: {
+          businessId,
+          endTime: { gt: startTimeUTC },
+          startTime: { lt: endTimeUTC },
+        },
       }),
     );
     if (blocksOverlap)
