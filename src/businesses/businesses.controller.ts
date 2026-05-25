@@ -20,6 +20,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
   ApiNotFoundResponse,
+  ApiBody,
+  ApiForbiddenResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import {
   ResponseBusinessDto,
@@ -93,6 +96,13 @@ export class BusinessesController {
     return this.businessesService.findOne(id);
   }
 
+  @ApiOperation({ summary: 'Create a service for a business' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiBody({ type: CreateServiceDto })
+  @ApiCreatedResponse({ type: ResponseCreateServiceDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Post(':id/services')
@@ -104,12 +114,22 @@ export class BusinessesController {
     return this.servicesService.create(id, createServiceDto);
   }
 
+  @ApiOperation({ summary: 'Get services of a business' })
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiOkResponse({ type: ResponseServiceDto })
   @Get(':id/services')
   @TransformDTO(ResponseServiceDto)
   getServices(@Param('id', ParseIntPipe) id: number) {
     return this.servicesService.findByBusinessId(id);
   }
 
+  @ApiOperation({ summary: 'Set business working hours' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiBody({ type: WeekScheduleDto })
+  @ApiOkResponse({ type: WorkingHoursDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @TransformDTO(WorkingHoursDto)
   @Put(':id/working-hours')
@@ -121,12 +141,22 @@ export class BusinessesController {
     return this.workingHourService.setWeeklySchedule(dto, id);
   }
 
+  @ApiOperation({ summary: 'Get business working hours' })
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiOkResponse({ type: WorkingHoursDto })
   @TransformDTO(WorkingHoursDto)
   @Get(':id/working-hours')
   getWorkingHours(@Param('id', ParseIntPipe) id: number) {
     return this.workingHourService.getWeeklySchedule(id);
   }
 
+  @ApiOperation({ summary: 'Add availability block' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiBody({ type: AvailabilityBlockDto })
+  @ApiCreatedResponse({ type: ResponseBlockDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @TransformDTO(ResponseBlockDto)
@@ -138,6 +168,12 @@ export class BusinessesController {
     return this.blocksService.create(dto, id);
   }
 
+  @ApiOperation({ summary: 'Get business availability blocks' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiOkResponse({ type: ResponseBlockDto })
+  @ApiQuery({ name: 'startDate', required: true })
+  @ApiQuery({ name: 'endDate', required: true })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Get(':id/blocks')
@@ -146,6 +182,11 @@ export class BusinessesController {
     return this.blocksService.get(query);
   }
 
+  @ApiOperation({ summary: 'Get service availability' })
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiParam({ name: 'serviceId', type: Number, example: 1 })
+  @ApiQuery({ name: 'date', example: '2026-05-25' })
+  @ApiOkResponse({ type: ResponseAvailabilityDto })
   @Get(':id/services/:serviceId/availability')
   @TransformDTO(ResponseAvailabilityDto)
   getAvailability(
@@ -160,6 +201,13 @@ export class BusinessesController {
     );
   }
 
+  @ApiOperation({ summary: 'Get bookings of a business' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiQuery({ name: 'date', example: '2026-05-25' })
+  @ApiOkResponse({ type: ResponseOwnerBookingsDto })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @Get(':id/bookings')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
