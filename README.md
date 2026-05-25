@@ -1,98 +1,294 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🗓️ Schedulify - SaaS Booking & Scheduling Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS 11 backend for a multi-tenant booking SaaS system where business owners define services and availability, and users book time slots under strict scheduling rules.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The system enforces conflict-free bookings, working-hour constraints, and timezone-aware scheduling logic on top of a PostgreSQL + Prisma architecture.
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- JWT authentication with refresh token support (access + refresh flow)
+- Role-based system (USER, BUSINESS_OWNER) with guarded endpoints
+- Multi-business system (users can create and manage businesses)
+- Service management per business (duration-based booking units, specified price in cents)
+- Strict booking engine with conflict detection and time-rule validation:
+  - No overlapping confirmed bookings per business
+  - Working-hours enforcement per weekday
+  - Time resolution enforced (5-minute boundaries)
+  - Duration-based booking end-time calculation
+  - Timezone-aware scheduling per business
+- Business working hours configuration (weekly schedule system)
+- Booking lifecycle management (create, cancel, ownership rules)
+- Prisma-powered PostgreSQL schema with generated models
+- DTO-based validation layer using class-validator + zod hybrid usage
+- Global request/response transformation interceptor
+- Centralized exception filtering with structured error output
+- Modular architecture (feature-based NestJS modules)
 
-## Project setup
+## Tech Stack
 
-```bash
-$ pnpm install
+- NestJS 11 (modular monolith architecture)
+- PostgreSQL + Prisma ORM
+- JWT + Passport (local, JWT, refresh strategies)
+- bcrypt for password hashing
+- class-validator / class-transformer
+- zod
+- Luxon for timezone + date handling
+- Docker Compose for local dev environment
+- Swagger / OpenAPI via `@nestjs/swagger `
+
+## Architecture Overview
+
+### Core Flow:
+
+- Controller receives request
+- DTO validation layer enforces schema correctness
+- Service layer handles business rules (booking engine, ownership, availability checks)
+- Prisma service interacts with PostgreSQL
+- Response transformed via global interceptor
+
+```mermaid
+flowchart LR
+Client --> Controller --> DTO[Validation Layer] --> Service --> Prisma --> PostgreSQL
+Service --> BusinessRules[Booking Engine / Availability Checks]
+Controller --> Guards[JWT / Roles Guards]
 ```
 
-## Compile and run the project
+## Project Structure
 
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+```text
+.
++- src/
+├── auth/                # JWT auth, refresh tokens, strategies, guards
+├── users/               # user profiles, roles
+├── businesses/          # business creation + management
+├── services/            # services offered by businesses
+├── bookings/            # booking engine (core logic)
+├── working-hours/       # weekly schedule system
+├── blocks/              # availability blocks / constraints
+├── resource/            # shared authorization logic
+├── generated/prisma/    # Prisma client + models
+├── _core/               # decorators, interceptors, filters, utils
+├── prisma.service.ts
+├── app.module.ts
+└── main.ts
++- package.json
++- package-lock.json
++- README.md
 ```
 
-## Run tests
+## 🧾 Core Domain Model
 
-```bash
-# unit tests
-$ pnpm run test
+- Main Entities
+  - User
+  - Business
+  - Service
+  - Booking
+  - WorkingHours
+  - AvailabilityBlock
+- Key Relationships
+  - User → owns Business (BUSINESS_OWNER role)
+  - Business → has many Services
+  - Business → has WorkingHours (weekly schedule)
+  - Service → defines booking duration
+  - Booking → belongs to User + Business + Service
 
-# e2e tests
-$ pnpm run test:e2e
+## 📘 API Documentation
 
-# test coverage
-$ pnpm run test:cov
+Swagger/OpenAPI documentation is configured using ` @nestjs/swagger`.
+
+After starting the server, open:
+
+```text
+http://localhost:{port}/api/v1/docs
 ```
 
-## Deployment
+Features:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- Interactive endpoint testing
+- Bearer token authentication support
+- DTO schema visualization
+- Request/response models
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 📡 API Overview (REST, versioned)
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+Base prefix:
+
+```text
+/api/v1
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Swagger documentation available at:
 
-## Resources
+```text
+ /api/v1/docs
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Bearer authentication is supported directly from the Swagger UI.
+Auth
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- POST /auth/sign-up
+- POST /auth/sign-in
+- POST /auth/refresh
+- POST /auth/sign-out
 
-## Support
+Users
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- GET /me
 
-## Stay in touch
+Businesses
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- POST /businesses
+- POST /businesses/:id/services
+- POST /businesses/:id/blocks
+- GET /businesses
+- GET /businesses/:id
+- GET /businesses/:id/services
+- GET /businesses/my
+- GET /businesses/:id/services/:id/availability
+- GET /businesses/:id/bookings
 
-## License
+Services
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- POST /businesses/:id/services
+- GET /services
+- GET /services/:id
+- PATCH /services/:id
+- DELETE /services/:id
+
+Working Hours
+
+- PUT /businesses/:id/working-hours
+- GET /businesses/:id/working-hours
+
+Bookings
+
+- POST /bookings
+- GET /bookings/me
+- GET /businesses/:id/bookings
+- POST /bookings/:id/cancel
+
+Availability Blocks
+
+- DELETE /blocks/:id
+
+-
+
+## 🧩 Booking Engine Rules
+
+Booking logic is strictly enforced at service layer level:
+
+- No overlap rule
+- CONFIRMED bookings cannot overlap for the same business
+- Working hours validation
+- Bookings must fall inside business weekly schedule
+- Time resolution
+- Start time must align to 5-minute increments
+- Duration rule
+- End time = start + service duration
+- Cancellation policy
+- Allowed only before cutoff (configurable threshold)
+- Ownership rules
+- USER: can only cancel own bookings
+- OWNER: can only manage their business bookings
+- Timezone handling
+- Each business stores its own timezone
+- All scheduling logic respects that timezone
+
+## 🧱 Prisma + Database
+
+- PostgreSQL database
+- Prisma schema-based migrations (not yet implemented in repo state)
+- Generated client under src/generated/prisma
+
+⚠️ Note:
+
+- No migrations setup yet (schema currently evolving manually)
+- No tenant isolation at DB level yet
+
+## 🐳 Docker Setup
+
+Docker Compose is used for local development.
+
+Includes:
+
+- PostgreSQL
+- Application service
+
+## 🔐 Authentication
+
+- JWT access token
+- Refresh token flow implemented
+- Passport strategies:
+  - local
+  - jwt
+  - jwt-refresh
+- Role-based access control via guards
+
+## 📊 Validation & Error Handling
+
+- DTO validation using class-validator
+- Custom decorators:
+  - ISO datetime validation
+  - time range validation
+  - duplicate day prevention for working hours
+- Global exception filter standardizes error responses
+- Response transformation interceptor ensures consistent API shape
+
+## 🧪 Testing Status
+
+- No tests implemented yet
+- Booking logic is designed to be unit-testable (conflict engine is isolated)
+- No integration/E2E coverage currently
+
+## 🚧 Known Limitations
+
+- No email/notification system yet
+- No background jobs (no queue, no cron)
+- No rate limiting on auth endpoints
+- No database migrations system yet
+- No tenant-level isolation (multi-business separation is logical, not physical)
+- No production logging strategy yet (basic logging only)
+
+## 📦 Environment Variables
+
+Example configuration:
+
+```text
+POSTGRES_DB=postgres_db
+POSTGRES_USER=postgres_user
+POSTGRES_PASSWORD=postgres_password
+POSTGRES_HOST=postgres_host
+POSTGRES_PORT=postgres_port
+
+JWT_ACCESS_TOKEN_SECRET=jwt_access_token_secret
+JWT_REFRESH_TOKEN_SECRET=jwt_refresh_token_secret
+JWT_ACCESS_TOKEN_EXPIRATION_MS=jwt_access_token_expiration_ms
+JWT_REFRESH_TOKEN_EXPIRATION_MS=jwt_refresh_token_expiration_ms
+BCRYPT_SALT_ROUNDS=bcrypt_salt_rounds
+
+PORT=port
+NODE_ENV=node_env
+
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?schema=public"
+
+```
+
+## 🚀 Running the Project
+
+```text
+npm install
+
+docker compose up -d
+
+npm run start:dev
+```
+
+## 📌 Design Philosophy
+
+This project prioritizes:
+
+deterministic booking logic
+
+- strict validation at API boundaries
+- separation of domain modules
+- future extensibility for SaaS scaling (multi-tenant evolution, queues, notifications, payments)
