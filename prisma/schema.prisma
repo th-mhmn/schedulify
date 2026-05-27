@@ -112,8 +112,12 @@ model AvailabilityBlock {
 }
 
 model IdempotencyKey {
-  id        Int     @id @default(autoincrement())
-  key       String
-  booking   Booking @relation(fields: [bookingId], references: [id])
-  bookingId Int     @unique
+  id           String   @id @default(cuid())
+  keyHash      String   @unique
+  booking      Booking  @relation(fields: [bookingId], references: [id])
+  bookingId    Int      @unique
+  responseBody Json?
+  statusCode   Int?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
 }
