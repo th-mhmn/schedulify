@@ -8,6 +8,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '@/prisma.service';
 import { DateTime } from 'luxon';
 import { ServicesService } from '@/services/services.service';
+import { Prisma } from '@/generated/prisma/client';
 
 @Injectable()
 export class BookingsService {
@@ -81,15 +82,25 @@ export class BookingsService {
     if (!reserved) {
       const end = startDate.plus({ minutes: service.durationMinutes });
 
-      const booking = await this.prisma.booking.create({
-        data: {
-          userId,
-          businessId,
-          serviceId,
-          startTime: startDate.toJSDate(),
-          endTime: end.toJSDate(),
+      const booking = await this.prisma.$transaction(
+        async (prisma) => {
+          return await prisma.booking.create({
+            data: {
+              userId,
+              businessId,
+              serviceId,
+              startTime: startDate.toJSDate(),
+              endTime: end.toJSDate(),
+            },
+          });
         },
-      });
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: 5000,
+          timeout: 10000,
+        },
+      );
+
       return { booking };
     }
 
