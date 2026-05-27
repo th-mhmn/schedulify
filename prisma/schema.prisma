@@ -79,19 +79,20 @@ model WorkingHours {
 }
 
 model Booking {
-  id          Int           @id @default(autoincrement())
-  user        User          @relation(fields: [userId], references: [id])
-  userId      Int
-  business    Business      @relation(fields: [businessId], references: [id])
-  businessId  Int
-  service     Service       @relation(fields: [serviceId], references: [id])
-  serviceId   Int
-  startTime   DateTime
-  endTime     DateTime
-  status      BookingStatus @default(CONFIRMED)
-  cancelledAt DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             Int             @id @default(autoincrement())
+  user           User            @relation(fields: [userId], references: [id])
+  userId         Int
+  business       Business        @relation(fields: [businessId], references: [id])
+  businessId     Int
+  service        Service         @relation(fields: [serviceId], references: [id])
+  serviceId      Int
+  startTime      DateTime
+  endTime        DateTime
+  status         BookingStatus   @default(CONFIRMED)
+  cancelledAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  idempotencyKey IdempotencyKey?
 
   @@index([businessId, startTime])
   @@index([userId, startTime])
@@ -108,4 +109,11 @@ model AvailabilityBlock {
   updatedAt  DateTime  @updatedAt
 
   @@index([businessId, startTime])
+}
+
+model IdempotencyKey {
+  id        Int     @id @default(autoincrement())
+  key       String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int     @unique
 }
