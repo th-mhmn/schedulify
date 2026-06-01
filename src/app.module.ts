@@ -10,8 +10,10 @@ import { BookingsModule } from './bookings/bookings.module';
 import { ResourceModule } from './resource/resource.module';
 import { WorkingHoursModule } from './working-hours/working-hours.module';
 import { BlocksModule } from './blocks/blocks.module';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
+    CacheModule.register({ isGlobal: true }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
