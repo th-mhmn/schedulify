@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -28,6 +29,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { IdempotencyInterceptor } from '@/_core/interceptors/idempotency-key.interceptor';
 
 @ApiTags('Bookings')
 @Controller('bookings')
@@ -42,6 +44,7 @@ export class BookingsController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @TransformDTO(ResponseBookingDto)
+  @UseInterceptors(IdempotencyInterceptor)
   create(
     @Body() createBookingDto: CreateBookingDto,
     @CurrentUser() user: IUserPayload,
