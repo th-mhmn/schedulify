@@ -9,12 +9,14 @@ import { PrismaService } from '@/prisma.service';
 import { DateTime } from 'luxon';
 import { ServicesService } from '@/services/services.service';
 import { Prisma } from '@/generated/prisma/client';
+import { NotificationQueue } from '../notifications/notification.queue';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly servicesService: ServicesService,
+    private readonly notificationQueue: NotificationQueue,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number) {
@@ -100,6 +102,8 @@ export class BookingsService {
           timeout: 10000,
         },
       );
+
+      await this.notificationQueue.enqueueBookingCreated(booking.id);
 
       return { booking };
     }
