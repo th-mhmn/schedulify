@@ -6,6 +6,7 @@ import {
 import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
 import { PrismaService } from '@/prisma.service';
 import { TimeRangeQueryDto } from '@/businesses/dto/time-range-query.dto';
+import { Prisma } from '@/generated/prisma/client';
 
 @Injectable()
 export class BlocksService {
@@ -26,14 +27,23 @@ export class BlocksService {
     );
     if (blocksOverlap)
       throw new ConflictException('Blocks are overlapping on this time-span');
-    return await this.prisma.availabilityBlock.create({
-      data: {
-        startTime: startTimeUTC,
-        endTime: endTimeUTC,
-        reason,
-        businessId,
+    return await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.availabilityBlock.create({
+          data: {
+            startTime: startTimeUTC,
+            endTime: endTimeUTC,
+            reason,
+            businessId,
+          },
+        });
       },
-    });
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
   }
 
   async get(query?: TimeRangeQueryDto) {
