@@ -10,6 +10,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from '@/prisma.service';
 import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
 import { formatDateTimeToHour } from '@/_core/utils/date';
+import { Prisma } from '@/generated/prisma/browser';
 
 @Injectable()
 export class ServicesService {
@@ -24,14 +25,23 @@ export class ServicesService {
         'A service already exists with the given name',
       );
 
-    const service = await this.prisma.service.create({
-      data: {
-        name,
-        businessId,
-        priceCents,
-        durationMinutes,
+    const service = await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.service.create({
+          data: {
+            name,
+            businessId,
+            priceCents,
+            durationMinutes,
+          },
+        });
       },
-    });
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
 
     return { service };
   }
