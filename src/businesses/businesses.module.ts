@@ -7,9 +7,10 @@ import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import { TimeRangeValidator } from '@/_core/validators/time-range.validator';
 import { BlocksService } from '@/blocks/blocks.service';
 import { IsoRangeValidator } from '@/_core/validators/iso-range.validator';
-import { BookingsService } from '@/bookings/bookings.service';
+import { BookingsModule } from '@/bookings/bookings.module';
 
 @Module({
+  imports: [BookingsModule],
   controllers: [BusinessesController],
   providers: [
     BusinessesService,
@@ -19,7 +20,6 @@ import { BookingsService } from '@/bookings/bookings.service';
     TimeRangeValidator,
     IsoRangeValidator,
     BlocksService,
-    BookingsService,
   ],
 })
 export class BusinessesModule {}
