@@ -11,20 +11,15 @@ import { ResourceModule } from './resource/resource.module';
 import { WorkingHoursModule } from './working-hours/working-hours.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from './queue/queue.module';
+import { NotificationModule } from './notifications/notification.module';
 @Module({
   imports: [
     CacheModule.register({ isGlobal: true }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379,
-      },
-    }),
+    QueueModule,
     AuthModule,
     UsersModule,
     BusinessesModule,
@@ -33,7 +28,7 @@ import { QueueModule } from './queue/queue.module';
     BookingsModule,
     WorkingHoursModule,
     BlocksModule,
-    QueueModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
