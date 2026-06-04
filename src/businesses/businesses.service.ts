@@ -32,14 +32,22 @@ export class BusinessesService {
       user = { ...user, role: 'BUSINESS_OWNER' } as any;
     }
 
-    const business = await this.prisma.business.create({
-      data: {
-        name,
-        timezone,
-        owner: { connect: { id: user.id } },
+    const business = await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.business.create({
+          data: {
+            name,
+            timezone,
+            owner: { connect: { id: user.id } },
+          },
+        });
       },
-      include: { owner: true },
-    });
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
 
     return { user, business };
   }
