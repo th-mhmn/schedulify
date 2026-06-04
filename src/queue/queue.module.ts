@@ -3,8 +3,11 @@ import { Module } from '@nestjs/common';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'notifications',
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
     }),
   ],
 })
