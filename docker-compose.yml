@@ -1,25 +1,68 @@
-name: "schedulify"
-
 services:
-  postgres:
-    image: postgres:15
-    container_name: schedulify_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: schedulify-app
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${PORT:-5000}:5000"
+    env_file:
+      - .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Mount source for hot reload — node_modules stays in the container
+      - .:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - schedulify-net
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: schedulify-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-schedulify}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-schedulify}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - schedulify-net
 
   redis:
-    image: redis:7
-    container_name: schedulify_redis
-    restart: always
+    image: redis:7-alpine
+    container_name: schedulify-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis}
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - schedulify-net
 
 volumes:
-  postgres_data:
+  postgres-data:
+  redis-data:
+
+networks:
+  schedulify-net:
+    driver: bridge
