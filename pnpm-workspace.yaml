@@ -1,8 +1,8 @@
-ignoredBuiltDependencies:
-  - '@nestjs/core'
-  - bcrypt
-  - unrs-resolver
-
-onlyBuiltDependencies:
-  - '@prisma/engines'
-  - prisma
+allowBuilds:
+  '@nestjs/core': false
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  bcrypt: false
+  msgpackr-extract: false
+  prisma: false
+  unrs-resolver: false
