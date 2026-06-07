@@ -18,6 +18,7 @@ import { NotificationModule } from './notifications/notification.module';
     CacheModule.register({ isGlobal: true }),
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: process.env.ENV_FILE ?? '.env.local',
     }),
     QueueModule,
     AuthModule,

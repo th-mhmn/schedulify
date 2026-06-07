@@ -20,6 +20,7 @@ export class AuthService {
   ) {}
 
   async signUp(signUpDto: SignUpDto, response: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
     const email = signUpDto.email.trim().toLowerCase();
 
     const saltRounds = Number(
@@ -75,13 +76,13 @@ export class AuthService {
 
     response.cookie('Authentication', accessToken, {
       httpOnly: true,
-      secure: this.configService.get('NODE_ENV') === 'production',
+      secure: isProd,
       expires: expiresAccessToken,
     });
 
     response.cookie('Refresh', refreshToken, {
       httpOnly: true,
-      secure: this.configService.get('NODE_ENV') === 'production',
+      secure: isProd,
       expires: expiresRefreshToken,
     });
 
@@ -142,6 +143,7 @@ export class AuthService {
 
   async signIn(user: IUserPayload, response: Response) {
     try {
+      const isProd = process.env.NODE_ENV === 'production';
       const expirationMs = parseInt(
         this.configService.getOrThrow('JWT_ACCESS_TOKEN_EXPIRATION_MS'),
       );
@@ -178,13 +180,13 @@ export class AuthService {
 
       response.cookie('Authentication', accessToken, {
         httpOnly: true,
-        secure: this.configService.get('NODE_ENV') === 'production',
+        secure: isProd,
         expires: expiresAccessToken,
       });
 
       response.cookie('Refresh', refreshToken, {
         httpOnly: true,
-        secure: this.configService.get('NODE_ENV') === 'production',
+        secure: isProd,
         expires: expiresRefreshToken,
       });
 
