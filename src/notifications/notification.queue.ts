@@ -15,6 +15,10 @@ export class NotificationQueue {
       { bookingId },
       {
         attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
       },
     );
   }
