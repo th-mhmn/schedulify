@@ -14,4 +14,4 @@ echo "→ Running migrations..."
 pnpm dlx prisma migrate deploy
 
 echo "→ Starting app..."
-exec npm run start:dev
+exec npm run start:dev:docker
