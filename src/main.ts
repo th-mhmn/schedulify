@@ -5,9 +5,16 @@ import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './_core/filters/global-exception.filter';
 import helmet from 'helmet';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  //* Helmet
+  app.use(helmet());
+
+  //* enable trust proxy
+  app.set('trust proxy', 'loopback');
 
   // * Enable CORS
   app.enableCors({
@@ -55,9 +62,6 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/v1/docs', app, documentFactory);
-
-  //* Helmet
-  app.use(helmet());
 
   await app.listen(process.env.PORT ?? 5000);
 }
