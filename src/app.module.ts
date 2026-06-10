@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BusinessesModule } from './businesses/businesses.module';
@@ -13,20 +13,36 @@ import { BlocksModule } from './blocks/blocks.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { QueueModule } from './queue/queue.module';
 import { NotificationModule } from './notifications/notification.module';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerBehindProxyGuard } from './_core/guards/throttler-behind-proxy.guard';
+import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute window
-        limit: 30, // max 30 requests per IP per minute
-      },
-    ]),
     CacheModule.register({ isGlobal: true }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.ENV_FILE ?? '.env.local',
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'short',
+          ttl: config.getOrThrow<number>('THROTTLE_SHORT_TTL'),
+          limit: config.getOrThrow<number>('THROTTLE_SHORT_LIMIT'),
+        },
+        {
+          name: 'medium',
+          ttl: config.getOrThrow<number>('THROTTLE_MEDIUM_TTL'),
+          limit: config.getOrThrow<number>('THROTTLE_MEDIUM_LIMIT'),
+        },
+        {
+          name: 'long',
+          ttl: config.getOrThrow<number>('THROTTLE_LONG_TTL'),
+          limit: config.getOrThrow<number>('THROTTLE_LONG_LIMIT'),
+        },
+      ],
     }),
     QueueModule,
     AuthModule,
@@ -41,11 +57,11 @@ import { APP_GUARD } from '@nestjs/core';
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: ThrottlerBehindProxyGuard,
     },
+    AppService,
   ],
 })
 export class AppModule {}
