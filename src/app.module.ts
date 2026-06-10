@@ -13,8 +13,16 @@ import { BlocksModule } from './blocks/blocks.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { QueueModule } from './queue/queue.module';
 import { NotificationModule } from './notifications/notification.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute window
+        limit: 30, // max 30 requests per IP per minute
+      },
+    ]),
     CacheModule.register({ isGlobal: true }),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -32,6 +40,12 @@ import { NotificationModule } from './notifications/notification.module';
     NotificationModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
