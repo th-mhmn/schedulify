@@ -21,7 +21,7 @@ import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('auth')
-@Throttle({ long: { ttl: 60000, limit: 5 } })
+@Throttle({ short: { ttl: 1000, limit: 1 }, long: { ttl: 60000, limit: 5 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
