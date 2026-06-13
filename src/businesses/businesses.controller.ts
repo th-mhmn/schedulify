@@ -1,5 +1,23 @@
-import { ServicesService } from './../services/services.service';
+import { CurrentUser } from '@/_core/decorators/current-user.decorator';
+import { Endpoint } from '@/_core/decorators/endpoint.decorator';
+import { Roles } from '@/_core/decorators/roles.decorator';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { RoleGuard } from '@/auth/guards/role.guard';
+import { BlocksService } from '@/blocks/blocks.service';
+import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
+import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
+import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
+import { BookingsService } from '@/bookings/bookings.service';
+import { ResponseOwnerBookingsDto } from '@/bookings/dto/response-booking.dto';
+import { CreateServiceDto } from '@/services/dto/create-service.dto';
+import {
+  ResponseCreateServiceDto,
+  ResponseServiceDto,
+} from '@/services/dto/response-service.dto';
+import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
+import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
+import { WorkingHoursService } from '@/working-hours/working-hours.service';
 import {
   Body,
   Controller,
@@ -11,45 +29,17 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiUnauthorizedResponse,
-  ApiNotFoundResponse,
-  ApiBody,
-  ApiForbiddenResponse,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import { ServicesService } from './../services/services.service';
+import { BusinessesService } from './businesses.service';
+import { CreateBusinessDto } from './dto/create-business.dto';
+import { DateQueryDto } from './dto/date-query-dto';
 import {
   ResponseBusinessDto,
   ResponseBusinessesDto,
+  ResponseSingleBusinessDto,
 } from './dto/response-business.dto';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/_core/decorators/current-user.decorator';
-import { CreateBusinessDto } from './dto/create-business.dto';
-import { BusinessesService } from './businesses.service';
-import { CreateServiceDto } from '@/services/dto/create-service.dto';
-import { RoleGuard } from '@/auth/guards/role.guard';
-import { Roles } from '@/_core/decorators/roles.decorator';
-import {
-  ResponseCreateServiceDto,
-  ResponseServiceDto,
-} from '@/services/dto/response-service.dto';
-import { WorkingHoursService } from '@/working-hours/working-hours.service';
-import { WeekScheduleDto } from '@/working-hours/dto/working-hours.dto';
-import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
-import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
-import { BlocksService } from '@/blocks/blocks.service';
-import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
 import { TimeRangeQueryDto } from './dto/time-range-query.dto';
-import { DateQueryDto } from './dto/date-query-dto';
-import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
-import { BookingsService } from '@/bookings/bookings.service';
-import { ResponseOwnerBookingsDto } from '@/bookings/dto/response-booking.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
@@ -61,10 +51,11 @@ export class BusinessesController {
     private readonly blocksService: BlocksService,
     private readonly bookingsService: BookingsService,
   ) {}
-  @ApiOperation({ summary: 'Create a business' })
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ type: ResponseBusinessDto })
+  @Endpoint({
+    summary: 'Create a business',
+    auth: true,
+    responseDto: ResponseBusinessDto,
+  })
   @TransformDTO(ResponseBusinessDto)
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -75,10 +66,11 @@ export class BusinessesController {
     return this.businessesService.create(createBusinessDto, user);
   }
 
-  @ApiOperation({ summary: 'Get businesses owned by current user' })
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiOkResponse({ type: ResponseBusinessesDto })
+  @Endpoint({
+    summary: 'Get businesses owned by current user',
+    auth: true,
+    responseDto: ResponseBusinessesDto,
+  })
   @TransformDTO(ResponseBusinessesDto)
   @Get('my')
   @UseGuards(JwtAuthGuard)
@@ -86,23 +78,26 @@ export class BusinessesController {
     return this.businessesService.getUserBusinesses(user);
   }
 
-  @ApiOperation({ summary: 'Get a business by id' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiNotFoundResponse({ description: 'Business not found' })
-  @ApiOkResponse({ type: ResponseBusinessDto }) // or a ResponseSingleBusinessDto without user
-  @TransformDTO(ResponseBusinessDto) // if you return { user, business } here too
+  @Endpoint({
+    summary: 'Get a business by id',
+    params: [{ name: 'id', type: Number, example: 1 }],
+    notFoundDescription: 'Business not found',
+    responseDto: ResponseSingleBusinessDto,
+  })
+  @TransformDTO(ResponseSingleBusinessDto)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.businessesService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a service for a business' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiBody({ type: CreateServiceDto })
-  @ApiCreatedResponse({ type: ResponseCreateServiceDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @Endpoint({
+    summary: 'Create a service for a business',
+    auth: true,
+    params: [{ name: 'id', type: Number, example: 1 }],
+    requestDto: CreateServiceDto,
+    responseDto: ResponseCreateServiceDto,
+    requireOwnership: true,
+  })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Post(':id/services')
@@ -114,22 +109,25 @@ export class BusinessesController {
     return this.servicesService.create(id, createServiceDto);
   }
 
-  @ApiOperation({ summary: 'Get services of a business' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ type: ResponseServiceDto })
+  @Endpoint({
+    summary: 'Get services of a business',
+    responseDto: ResponseServiceDto,
+    params: [{ name: 'id', type: Number, example: 1 }],
+  })
   @Get(':id/services')
   @TransformDTO(ResponseServiceDto)
   getServices(@Param('id', ParseIntPipe) id: number) {
     return this.servicesService.findByBusinessId(id);
   }
 
-  @ApiOperation({ summary: 'Set business working hours' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiBody({ type: WeekScheduleDto })
-  @ApiOkResponse({ type: WorkingHoursDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @Endpoint({
+    summary: 'Set business working hours',
+    auth: true,
+    requireOwnership: true,
+    params: [{ name: 'id', type: Number, example: 1 }],
+    requestDto: WeekScheduleDto,
+    responseDto: WorkingHoursDto,
+  })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @TransformDTO(WorkingHoursDto)
   @Put(':id/working-hours')
@@ -141,22 +139,24 @@ export class BusinessesController {
     return this.workingHourService.setWeeklySchedule(dto, id);
   }
 
-  @ApiOperation({ summary: 'Get business working hours' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ type: WorkingHoursDto })
+  @Endpoint({
+    summary: 'Get business working hours',
+    params: [{ name: 'id', type: Number, example: 1 }],
+    responseDto: WorkingHoursDto,
+  })
   @TransformDTO(WorkingHoursDto)
   @Get(':id/working-hours')
   getWorkingHours(@Param('id', ParseIntPipe) id: number) {
     return this.workingHourService.getWeeklySchedule(id);
   }
 
-  @ApiOperation({ summary: 'Add availability block' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiBody({ type: AvailabilityBlockDto })
-  @ApiCreatedResponse({ type: ResponseBlockDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @Endpoint({
+    summary: 'Add availability block',
+    auth: true,
+    requireOwnership: true,
+    requestDto: AvailabilityBlockDto,
+    responseDto: ResponseBlockDto,
+  })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @TransformDTO(ResponseBlockDto)
@@ -168,12 +168,16 @@ export class BusinessesController {
     return this.blocksService.create(dto, id);
   }
 
-  @ApiOperation({ summary: 'Get business availability blocks' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ type: ResponseBlockDto })
-  @ApiQuery({ name: 'startDate', required: true })
-  @ApiQuery({ name: 'endDate', required: true })
+  @Endpoint({
+    summary: 'Get business availability blocks',
+    params: [{ name: 'id', type: Number, example: 1 }],
+    query: [
+      { name: 'startDate', required: true },
+      { name: 'endDate', required: true },
+    ],
+    auth: true,
+    responseDto: ResponseBlockDto,
+  })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Get(':id/blocks')
@@ -182,11 +186,15 @@ export class BusinessesController {
     return this.blocksService.get(query);
   }
 
-  @ApiOperation({ summary: 'Get service availability' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiParam({ name: 'serviceId', type: Number, example: 1 })
-  @ApiQuery({ name: 'date', example: '2026-05-25' })
-  @ApiOkResponse({ type: ResponseAvailabilityDto })
+  @Endpoint({
+    summary: 'Get service availability',
+    params: [
+      { name: 'id', type: Number, example: 1 },
+      { name: 'serviceId', type: Number, example: 1 },
+    ],
+    query: [{ name: 'date', example: '2026-05-25' }],
+    responseDto: ResponseAvailabilityDto,
+  })
   @Get(':id/services/:serviceId/availability')
   @TransformDTO(ResponseAvailabilityDto)
   getAvailability(
@@ -201,13 +209,13 @@ export class BusinessesController {
     );
   }
 
-  @ApiOperation({ summary: 'Get bookings of a business' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiQuery({ name: 'date', example: '2026-05-25' })
-  @ApiOkResponse({ type: ResponseOwnerBookingsDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @Endpoint({
+    summary: 'Get bookings of a business',
+    auth: true,
+    params: [{ name: 'id', type: Number, example: 1 }],
+    query: [{ name: 'date', example: '2026-05-25' }],
+    responseDto: ResponseOwnerBookingsDto,
+  })
   @Get(':id/bookings')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')

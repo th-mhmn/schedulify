@@ -67,7 +67,6 @@ export class AuthController {
   @Endpoint({
     summary: 'Get current user (requires Authentication cookie)',
     auth: true,
-    authDescription: 'Not authenticated',
     authCookie: 'Authentication',
     successStatus: 200,
     successDescription: 'Current user returned',
@@ -83,7 +82,6 @@ export class AuthController {
     summary: 'Sign out (clears cookies, revokes refresh token)',
     auth: true,
     authCookie: 'Authentication',
-    authDescription: 'Not authenticated',
     successStatus: 200,
     successDescription: 'Signed Out',
   })
