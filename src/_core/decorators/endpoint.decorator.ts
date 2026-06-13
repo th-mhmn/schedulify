@@ -10,10 +10,13 @@ import {
   ApiBody,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
@@ -36,7 +39,20 @@ interface EndpointOptions {
   successStatus?: 200 | 201 | 204;
   successDescription?: string;
 
+  notFoundDescription?: string;
+
+  requireOwnership?: boolean;
+  forbiddenDescription?: string;
+
   params?: {
+    name: string;
+    description?: string;
+    required?: boolean;
+    example?: string | number;
+    type?: StringConstructor | NumberConstructor;
+  }[];
+
+  query?: {
     name: string;
     description?: string;
     required?: boolean;
@@ -106,6 +122,18 @@ export function Endpoint(options: EndpointOptions) {
     );
   });
 
+  options.query?.forEach((query) => {
+    decorators.push(
+      ApiQuery({
+        name: query.name,
+        description: query.description,
+        required: query.required ?? true,
+        example: query.example,
+        type: query.type ?? String,
+      }),
+    );
+  });
+
   if (options.responseDto) {
     switch (options.successStatus) {
       case 200:
@@ -146,13 +174,26 @@ export function Endpoint(options: EndpointOptions) {
     decorators.push(TransformDTO(options.responseDto) as MethodDecorator);
   }
 
-  if (options.badRequestDescription) {
+  if (options.badRequestDescription)
     decorators.push(
       ApiBadRequestResponse({
         description: options.badRequestDescription,
       }),
     );
-  }
+
+  if (options.notFoundDescription)
+    decorators.push(
+      ApiNotFoundResponse({
+        description: options.notFoundDescription,
+      }),
+    );
+
+  if (options.requireOwnership)
+    decorators.push(
+      ApiForbiddenResponse({
+        description: options.forbiddenDescription ?? 'Forbidden',
+      }),
+    );
 
   return applyDecorators(...decorators);
 }
