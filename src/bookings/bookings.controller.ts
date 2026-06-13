@@ -1,50 +1,37 @@
+import { CurrentUser } from '@/_core/decorators/current-user.decorator';
+import { Endpoint } from '@/_core/decorators/endpoint.decorator';
+import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
-import { CurrentUser } from '@/_core/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import {
   ResponseBookingDto,
   ResponseUserBookingsDto,
 } from './dto/response-booking.dto';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
-import { IdempotencyInterceptor } from '@/_core/interceptors/idempotency-key.interceptor';
+import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @ApiTags('Bookings')
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  @ApiOperation({ summary: 'Create a booking' })
-  @ApiBearerAuth()
-  @ApiBody({ type: CreateBookingDto })
-  @ApiCreatedResponse({ type: ResponseBookingDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  @TransformDTO(ResponseBookingDto)
-  @UseInterceptors(IdempotencyInterceptor)
+  @Endpoint({
+    summary: 'Create a booking',
+    requestDto: CreateBookingDto,
+    responseDto: ResponseBookingDto,
+    auth: true,
+    idempotent: true,
+  })
   create(
     @Body() createBookingDto: CreateBookingDto,
     @CurrentUser() user: IUserPayload,
@@ -52,10 +39,11 @@ export class BookingsController {
     return this.bookingsService.create(createBookingDto, user.id);
   }
 
-  @ApiOperation({ summary: 'Get current user bookings' })
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ResponseUserBookingsDto })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Endpoint({
+    summary: 'Get current user bookings',
+    responseDto: ResponseUserBookingsDto,
+    auth: true,
+  })
   @UseGuards(JwtAuthGuard)
   @Get('my')
   @TransformDTO(ResponseUserBookingsDto)
@@ -63,33 +51,45 @@ export class BookingsController {
     return this.bookingsService.findUserBookings(user.id);
   }
 
-  @ApiOperation({ summary: 'Get all bookings' })
-  @ApiOkResponse({ description: 'List of bookings' })
+  @Endpoint({
+    summary: 'Get all bookings',
+    successStatus: 200,
+    successDescription: 'List of bookings',
+  })
   @Get()
   findAll() {
     return this.bookingsService.findAll();
   }
 
-  @ApiOperation({ summary: 'Get booking by id' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ description: 'Booking found' })
+  @Endpoint({
+    summary: 'Get booking by id',
+    successStatus: 200,
+    successDescription: 'Booking found',
+    params: [{ name: 'id', type: Number, example: 1 }],
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingsService.findOne(+id);
   }
 
-  @ApiOperation({ summary: 'Update booking' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiBody({ type: UpdateBookingDto })
-  @ApiOkResponse({ description: 'Booking updated' })
+  @Endpoint({
+    summary: 'Update booking',
+    params: [{ name: 'id', type: Number, example: 1 }],
+    requestDto: UpdateBookingDto,
+    successStatus: 200,
+    successDescription: 'Booking updated',
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingsService.update(+id, updateBookingDto);
   }
 
-  @ApiOperation({ summary: 'Delete booking' })
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ description: 'Booking deleted' })
+  @Endpoint({
+    summary: 'Delete booking',
+    params: [{ name: 'id', type: Number, example: 1 }],
+    successStatus: 200,
+    successDescription: 'Booking deleted',
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.bookingsService.remove(+id);
