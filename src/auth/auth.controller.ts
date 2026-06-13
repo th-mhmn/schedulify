@@ -1,24 +1,16 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBody,
-  ApiOkResponse,
-  ApiCreatedResponse,
-  ApiUnauthorizedResponse,
-  ApiBadRequestResponse,
-  ApiCookieAuth,
-} from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { SignUpDto } from './dto/sign-up.dto';
-import { ResponseUserDto } from '@/users/dto/response-user.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { SignInDto } from './dto/sign-in.dto';
-import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
+import { Endpoint } from '@/_core/decorators/endpoint.decorator';
+import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
+import { ResponseUserDto } from '@/users/dto/response-user.dto';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { AuthService } from './auth.service';
+import { SignInDto } from './dto/sign-in.dto';
+import { SignUpDto } from './dto/sign-up.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @ApiTags('auth')
 @Throttle({ short: { ttl: 1000, limit: 1 }, long: { ttl: 60000, limit: 5 } })
@@ -26,20 +18,25 @@ import { Throttle } from '@nestjs/throttler';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Sign up (sets Authentication + Refresh cookies)' })
-  @ApiBody({ type: SignUpDto })
-  @ApiCreatedResponse({ description: 'User created, cookies set' })
-  @ApiBadRequestResponse({ description: 'Email already registered' })
+  @Endpoint({
+    summary: 'Sign up (sets Authentication + Refresh cookies)',
+    requestDto: SignUpDto,
+    successDescription: 'User created, cookies set',
+    badRequestDescription: 'Email already registered',
+  })
   @TransformDTO(ResponseUserDto)
   @Post('sign-up')
   signUp(@Res({ passthrough: true }) response, @Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto, response);
   }
 
-  @ApiOperation({ summary: 'Sign in (sets Authentication + Refresh cookies)' })
-  @ApiBody({ type: SignInDto })
-  @ApiOkResponse({ description: 'Signed in, cookies set' })
-  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  @Endpoint({
+    summary: 'Sign in (sets Authentication + Refresh cookies)',
+    requestDto: SignInDto,
+    successStatus: 200,
+    successDescription: 'Signed in, cookies set',
+    auth: true,
+  })
   @TransformDTO(ResponseUserDto)
   @Post('sign-in')
   @UseGuards(LocalAuthGuard)
@@ -50,10 +47,14 @@ export class AuthController {
     return this.authService.signIn(user, response);
   }
 
-  @ApiOperation({ summary: 'Refresh tokens (requires Refresh cookie)' })
-  @ApiCookieAuth('Refresh')
-  @ApiOkResponse({ description: 'New cookies set' })
-  @ApiUnauthorizedResponse({ description: 'Refresh token invalid/expired' })
+  @Endpoint({
+    summary: 'Refresh tokens (requires Refresh cookie)',
+    auth: true,
+    authDescription: 'Refresh token invalid/expired',
+    successStatus: 200,
+    successDescription: 'New cookies set',
+    authCookie: 'Refresh',
+  })
   @Post('refresh')
   @UseGuards(JwtRefreshAuthGuard)
   async refresh(
@@ -63,12 +64,14 @@ export class AuthController {
     return this.authService.signIn(user, response);
   }
 
-  @ApiOperation({
+  @Endpoint({
     summary: 'Get current user (requires Authentication cookie)',
+    auth: true,
+    authDescription: 'Not authenticated',
+    authCookie: 'Authentication',
+    successStatus: 200,
+    successDescription: 'Current user returned',
   })
-  @ApiCookieAuth('Authentication')
-  @ApiOkResponse({ description: 'Current user returned' })
-  @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   @TransformDTO(ResponseUserDto)
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -76,10 +79,14 @@ export class AuthController {
     return { user };
   }
 
-  @ApiOperation({ summary: 'Sign out (clears cookies, revokes refresh token)' })
-  @ApiCookieAuth('Authentication')
-  @ApiOkResponse({ description: 'Signed out' })
-  @ApiUnauthorizedResponse({ description: 'Not authenticated' })
+  @Endpoint({
+    summary: 'Sign out (clears cookies, revokes refresh token)',
+    auth: true,
+    authCookie: 'Authentication',
+    authDescription: 'Not authenticated',
+    successStatus: 200,
+    successDescription: 'Signed Out',
+  })
   @Post('sign-out')
   @UseGuards(JwtAuthGuard)
   async signOut(
