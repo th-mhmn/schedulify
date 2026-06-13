@@ -1,6 +1,6 @@
-import { Expose, Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
 import { UserPayloadDto } from '@/users/dto/user-payload.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
 
 export class OwnerDto {
   @ApiProperty({ example: 1 })
@@ -53,6 +53,13 @@ export class ResponseBusinessDto {
   @Type(() => UserPayloadDto)
   user: UserPayloadDto;
 
+  @ApiProperty({ type: () => BusinessDto })
+  @Expose()
+  @Type(() => BusinessDto)
+  business: BusinessDto;
+}
+
+export class ResponseSingleBusinessDto {
   @ApiProperty({ type: () => BusinessDto })
   @Expose()
   @Type(() => BusinessDto)
