@@ -5,8 +5,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -27,6 +29,8 @@ interface EndpointOptions {
   responseDto?: Type<any>;
 
   auth?: boolean;
+  authCookie?: 'Refresh' | 'Authentication';
+  authDescription?: string;
   idempotent?: boolean;
 
   successStatus?: 200 | 201 | 204;
@@ -39,6 +43,8 @@ interface EndpointOptions {
     example?: string | number;
     type?: StringConstructor | NumberConstructor;
   }[];
+
+  badRequestDescription?: string;
 }
 
 export function Endpoint(options: EndpointOptions) {
@@ -72,10 +78,13 @@ export function Endpoint(options: EndpointOptions) {
     decorators.push(
       ApiBearerAuth(),
       ApiUnauthorizedResponse({
-        description: 'Unauthorized',
+        description: options.authDescription ?? 'Unauthorized',
       }),
       UseGuards(JwtAuthGuard),
     );
+    if (options.authCookie) {
+      decorators.push(ApiCookieAuth(options.authCookie));
+    }
   }
 
   if (options.idempotent) {
@@ -135,6 +144,14 @@ export function Endpoint(options: EndpointOptions) {
     }
 
     decorators.push(TransformDTO(options.responseDto) as MethodDecorator);
+  }
+
+  if (options.badRequestDescription) {
+    decorators.push(
+      ApiBadRequestResponse({
+        description: options.badRequestDescription,
+      }),
+    );
   }
 
   return applyDecorators(...decorators);
