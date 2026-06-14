@@ -1,15 +1,18 @@
+import { Business, Prisma, Service } from '@/generated/prisma/client';
+import { PrismaService } from '@/prisma.service';
+import { ServicesService } from '@/services/services.service';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { DateTime } from 'luxon';
+import { NotificationQueue } from '../notifications/notification.queue';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { PrismaService } from '@/prisma.service';
-import { DateTime } from 'luxon';
-import { ServicesService } from '@/services/services.service';
-import { Prisma } from '@/generated/prisma/client';
-import { NotificationQueue } from '../notifications/notification.queue';
+import { BookingWindow } from './types/booking-window.type';
+import { BookingAvailabilityService } from './validators/booking-conflict.validator';
+import { BookingWorkingHoursValidator } from './validators/booking-working-hours.validator';
 
 @Injectable()
 export class BookingsService {
@@ -17,105 +20,36 @@ export class BookingsService {
     private readonly prisma: PrismaService,
     private readonly servicesService: ServicesService,
     private readonly notificationQueue: NotificationQueue,
+    private readonly workingHoursValidator: BookingWorkingHoursValidator,
+    private readonly availabilityService: BookingAvailabilityService,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: number) {
     const { businessId, serviceId, startTime } = createBookingDto;
 
-    const business = await this.prisma.business.findUnique({
-      where: { id: businessId },
-    });
-    if (!business) throw new NotFoundException('Business not found');
+    const business = await this.validateBusiness(businessId, userId);
+    const service = await this.validateService(serviceId, businessId);
 
-    if (business.ownerId === userId)
-      throw new ConflictException(
-        'You cannot book a reservation for your own service',
-      );
+    const bookingWindow = this.buildBookingWindow(startTime, service, business);
 
-    const service = await this.prisma.service.findUnique({
-      where: { id: serviceId },
-    });
-    if (!service || service.businessId !== businessId)
-      throw new NotFoundException('Service not found');
-
-    const startDate = DateTime.fromISO(startTime).setZone(business.timezone);
-    const endDate = startDate.plus({ minutes: service.durationMinutes });
-    const dayOfWeek = startDate.weekday - 1;
-
-    const workingHours = await this.prisma.workingHours.findFirst({
-      where: {
-        businessId,
-        dayOfWeek,
-      },
-    });
-
-    if (!workingHours)
-      throw new ConflictException('Business is closed on this day');
-
-    const { day, month, year } = startDate;
-    const start_hour_minute = workingHours.startTime.split(':');
-    const end_hour_minute = workingHours.endTime.split(':');
-
-    const openAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: Number(start_hour_minute[0]),
-      minute: Number(start_hour_minute[1]),
-    });
-
-    const closeAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: Number(end_hour_minute[0]),
-      minute: Number(end_hour_minute[1]),
-    });
-
-    if (closeAt < endDate || openAt > startDate)
-      throw new ConflictException('Outside working hours');
-
-    const reserved = await this.servicesService.checkReserved(
-      business?.timezone,
-      startTime,
-      service.durationMinutes,
+    const workingHours = await this.getWorkingHours(
+      business,
+      bookingWindow.dayOfWeek,
     );
 
-    if (!reserved) {
-      const end = startDate.plus({ minutes: service.durationMinutes });
+    this.workingHoursValidator.validate(workingHours, bookingWindow);
 
-      const booking = await this.prisma.$transaction(
-        async (prisma) => {
-          return await prisma.booking.create({
-            data: {
-              userId,
-              businessId,
-              serviceId,
-              startTime: startDate.toJSDate(),
-              endTime: end.toJSDate(),
-            },
-          });
-        },
-        {
-          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-          maxWait: 5000,
-          timeout: 10000,
-        },
-      );
+    this.availabilityService.validate(business, startTime, service);
 
-      await this.notificationQueue.enqueueBookingCreated(booking.id);
-
-      return { booking };
-    }
-
-    if (reserved.blocks.length > 0)
-      throw new ConflictException(
-        'The owner has blocked this time span for reservations',
-      );
-
-    throw new ConflictException(
-      'There is another reservation already booked on this time',
+    const booking = await this.createBookingRecord(
+      bookingWindow,
+      service,
+      userId,
+      businessId,
     );
+
+    await this.notificationQueue.enqueueBookingCreated(booking.id);
+    return { booking };
   }
 
   async findUserBookings(userId: number) {
@@ -157,5 +91,88 @@ export class BookingsService {
 
   remove(id: number) {
     return `This action removes a #${id} booking`;
+  }
+
+  private async validateBusiness(
+    businessId: number,
+    userId: number,
+  ): Promise<Business> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
+    if (business.ownerId === userId)
+      throw new ConflictException(
+        'You cannot book a reservation for your own service',
+      );
+    return business;
+  }
+
+  private async validateService(
+    serviceId: number,
+    businessId: number,
+  ): Promise<Service> {
+    const service = await this.prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+    if (!service || service.businessId !== businessId)
+      throw new NotFoundException('Service not found');
+    return service;
+  }
+
+  private async getWorkingHours(business: Business, dayOfWeek: number) {
+    const { id: businessId } = business;
+
+    const workingHours = await this.prisma.workingHours.findFirst({
+      where: {
+        businessId,
+        dayOfWeek,
+      },
+    });
+    if (!workingHours)
+      throw new ConflictException('Business is closed on this day');
+    return workingHours;
+  }
+
+  private buildBookingWindow(
+    startTime: string,
+    service: Service,
+    business: Business,
+  ): BookingWindow {
+    const startDate = DateTime.fromISO(startTime).setZone(business.timezone);
+    const endDate = startDate.plus({ minutes: service.durationMinutes });
+    const dayOfWeek = startDate.weekday - 1;
+    return { startDate, endDate, dayOfWeek };
+  }
+
+  private async createBookingRecord(
+    bookingWindow: BookingWindow,
+    service: Service,
+    userId,
+    businessId,
+  ) {
+    const { startDate, endDate } = bookingWindow;
+    const { id: serviceId } = service;
+
+    const booking = await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.booking.create({
+          data: {
+            userId,
+            businessId,
+            serviceId,
+            startTime: startDate.toJSDate(),
+            endTime: endDate.toJSDate(),
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
+    return booking;
   }
 }
