@@ -1,49 +1,31 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
-import { PrismaService } from '@/prisma.service';
 import { TimeRangeQueryDto } from '@/businesses/dto/time-range-query.dto';
 import { Prisma } from '@/generated/prisma/client';
+import { PrismaService } from '@/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
+import { BlocksOverlapService } from './validators/blocks-overlap.validator';
 
 @Injectable()
 export class BlocksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly blocksOverlap: BlocksOverlapService,
+  ) {}
 
   async create(dto: AvailabilityBlockDto, businessId: number) {
-    const { startTime: dtoStartTime, endTime: dtoEndTime, reason } = dto;
-    const startTimeUTC = new Date(dtoStartTime);
-    const endTimeUTC = new Date(dtoEndTime);
-    const blocksOverlap = Boolean(
-      await this.prisma.availabilityBlock.findFirst({
-        where: {
-          businessId,
-          endTime: { gt: startTimeUTC },
-          startTime: { lt: endTimeUTC },
-        },
-      }),
+    const { startTime, endTime, reason } = dto;
+
+    const date = this.convertStringToDate(startTime, endTime);
+
+    await this.blocksOverlap.validate(businessId, date.start, date.end);
+
+    const block = await this.createBlockRecord(
+      businessId,
+      date.start,
+      date.end,
+      reason,
     );
-    if (blocksOverlap)
-      throw new ConflictException('Blocks are overlapping on this time-span');
-    return await this.prisma.$transaction(
-      async (prisma) => {
-        return await prisma.availabilityBlock.create({
-          data: {
-            startTime: startTimeUTC,
-            endTime: endTimeUTC,
-            reason,
-            businessId,
-          },
-        });
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        maxWait: 5000,
-        timeout: 10000,
-      },
-    );
+    return { block };
   }
 
   async get(query?: TimeRangeQueryDto) {
@@ -57,5 +39,36 @@ export class BlocksService {
 
   async delete(id: number) {
     return await this.prisma.availabilityBlock.delete({ where: { id } });
+  }
+
+  private async createBlockRecord(
+    businessId: number,
+    startTime: Date,
+    endTime: Date,
+    reason: string,
+  ) {
+    await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.availabilityBlock.create({
+          data: {
+            startTime,
+            endTime,
+            reason,
+            businessId,
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
+  }
+
+  private convertStringToDate(s: string, e: string) {
+    const start = new Date(s);
+    const end = new Date(e);
+    return { start, end };
   }
 }
