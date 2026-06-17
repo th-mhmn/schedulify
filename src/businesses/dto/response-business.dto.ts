@@ -1,4 +1,3 @@
-import { UserPayloadDto } from '@/users/dto/user-payload.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
@@ -62,11 +61,6 @@ export class ResponseSingleBusinessDto {
 }
 
 export class ResponseBusinessesDto {
-  @ApiProperty({ type: () => UserPayloadDto })
-  @Expose()
-  @Type(() => UserPayloadDto)
-  user: UserPayloadDto;
-
   @ApiProperty({ type: () => BusinessDto, isArray: true })
   @Expose()
   @Type(() => BusinessDto)

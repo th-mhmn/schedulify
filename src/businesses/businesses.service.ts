@@ -55,7 +55,7 @@ export class BusinessesService {
       where: { ownerId: user.id },
     });
 
-    return { user, businesses };
+    return { businesses };
   }
 
   findAll() {
