@@ -1,55 +1,28 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Prisma } from '@/generated/prisma/client';
+import { PrismaService } from '@/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
-import { PrismaService } from '@/prisma.service';
-import { Prisma } from '@/generated/prisma/client';
 import { Business } from './entities/business.entity';
+import { BusinessValidator } from './validators/business.validator';
 
 @Injectable()
 export class BusinessesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly businessValidator: BusinessValidator,
+  ) {}
 
   async create(dto: CreateBusinessDto, user: IUserPayload) {
     const { name, timezone } = dto;
 
-    const existingByName = await this.prisma.business.findFirst({
-      where: { name },
-    });
-    if (existingByName)
-      throw new BadRequestException(
-        'A business already exists with the given name',
-      );
+    await this.businessValidator.validateExisting(name);
 
-    if (user.role === 'USER') {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { role: 'BUSINESS_OWNER' },
-      });
-      user = { ...user, role: 'BUSINESS_OWNER' } as any;
-    }
+    await this.updateRole(user.id, user.role);
 
-    const business = await this.prisma.$transaction(
-      async (prisma) => {
-        return await prisma.business.create({
-          data: {
-            name,
-            timezone,
-            owner: { connect: { id: user.id } },
-          },
-        });
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        maxWait: 5000,
-        timeout: 10000,
-      },
-    );
+    const business = await this.createBusinessRecord(name, timezone, user.id);
 
-    return { user, business };
+    return { business };
   }
 
   async find(
@@ -105,5 +78,37 @@ export class BusinessesService {
 
   remove(id: number) {
     return `This action removes a #${id} business`;
+  }
+
+  private async updateRole(id: number, role: string) {
+    if (role === 'BUSINESS_OWNER') return;
+    await this.prisma.user.update({
+      where: { id },
+      data: { role: 'BUSINESS_OWNER' },
+    });
+  }
+
+  private async createBusinessRecord(
+    name: string,
+    timezone: string,
+    userId: number,
+  ) {
+    const business = await this.prisma.$transaction(
+      async (prisma) => {
+        return await prisma.business.create({
+          data: {
+            name,
+            timezone,
+            owner: { connect: { id: userId } },
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      },
+    );
+    return business;
   }
 }
