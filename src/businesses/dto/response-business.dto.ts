@@ -48,11 +48,6 @@ export class BusinessDto {
 }
 
 export class ResponseBusinessDto {
-  @ApiProperty({ type: () => UserPayloadDto })
-  @Expose()
-  @Type(() => UserPayloadDto)
-  user: UserPayloadDto;
-
   @ApiProperty({ type: () => BusinessDto })
   @Expose()
   @Type(() => BusinessDto)
