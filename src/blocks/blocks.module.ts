@@ -7,5 +7,6 @@ import { BlocksOverlapService } from './validators/blocks-overlap.validator';
 @Module({
   controllers: [BlocksController],
   providers: [BlocksService, PrismaService, BlocksOverlapService],
+  exports: [BlocksService],
 })
 export class BlocksModule {}
