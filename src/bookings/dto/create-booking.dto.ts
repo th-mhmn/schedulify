@@ -1,7 +1,8 @@
 import { IsIsoDateTimeWithResolution } from '@/_core/decorators/is-iso-datetime-with-resolution.decorator';
-import { TimeRangeValidator } from '@/_core/validators/time-range.validator';
-import { IsInt, IsPositive, Validate } from 'class-validator';
+import { IsValidTimeRange } from '@/_core/validators/time-range.validator';
+import { IsInt, IsPositive } from 'class-validator';
 
+@IsValidTimeRange({ message: 'startTime must be earlier than endTime' })
 export class CreateBookingDto {
   @IsInt()
   @IsPositive()
@@ -16,7 +17,4 @@ export class CreateBookingDto {
       'startTime must be a valid ISO datetime and aligned to 5-minute intervals',
   })
   startTime: string;
-
-  @Validate(TimeRangeValidator)
-  _timeRangeCheck: true;
 }
