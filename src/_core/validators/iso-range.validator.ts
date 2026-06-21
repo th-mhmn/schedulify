@@ -1,12 +1,14 @@
 import {
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  ValidationArguments,
 } from 'class-validator';
 
 function parseIsoMs(value: string): number | null {
   const ms = Date.parse(value);
-  return Number.isNaN(ms) ? null : ms;
+  return isNaN(ms) ? null : ms;
 }
 
 @ValidatorConstraint({ name: 'IsoRangeValidator', async: false })
@@ -19,7 +21,6 @@ export class IsoRangeValidator implements ValidatorConstraintInterface {
     const startMs = parseIsoMs(obj.startTime);
     const endMs = parseIsoMs(obj.endTime);
 
-    // If either is invalid, let field validators complain.
     if (startMs === null || endMs === null) return true;
 
     return startMs < endMs;
@@ -28,4 +29,16 @@ export class IsoRangeValidator implements ValidatorConstraintInterface {
   defaultMessage(): string {
     return 'startTime must be earlier than endTime';
   }
+}
+
+export function IsValidIsoRange(validationOptions?: ValidationOptions) {
+  return function (constructor: Function) {
+    registerDecorator({
+      target: constructor,
+      propertyName: '',
+      options: validationOptions,
+      constraints: [],
+      validator: IsoRangeValidator,
+    });
+  };
 }

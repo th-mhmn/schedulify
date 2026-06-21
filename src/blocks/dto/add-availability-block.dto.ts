@@ -1,13 +1,8 @@
 import { IsIsoDateTimeWithResolution } from '@/_core/decorators/is-iso-datetime-with-resolution.decorator';
-import { IsoRangeValidator } from '@/_core/validators/iso-range.validator';
-import {
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-  Validate,
-} from 'class-validator';
+import { IsValidIsoRange } from '@/_core/validators/iso-range.validator';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
+@IsValidIsoRange({ message: 'startTime must be earlier than endTime' })
 export class AvailabilityBlockDto {
   @IsString()
   @IsIsoDateTimeWithResolution(5, {
@@ -28,7 +23,4 @@ export class AvailabilityBlockDto {
   @MaxLength(64)
   @IsOptional()
   reason: string;
-
-  @Validate(IsoRangeValidator)
-  _rangeCheck: true;
 }
