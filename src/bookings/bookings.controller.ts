@@ -1,14 +1,19 @@
 import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { Endpoint } from '@/_core/decorators/endpoint.decorator';
+import { Roles } from '@/_core/decorators/roles.decorator';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { RoleGuard } from '@/auth/guards/role.guard';
+import { DateQueryDto } from '@/businesses/dto/date-query-dto';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -16,6 +21,7 @@ import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import {
   ResponseBookingDto,
+  ResponseOwnerBookingsDto,
   ResponseUserBookingsDto,
 } from './dto/response-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -49,6 +55,24 @@ export class BookingsController {
   @TransformDTO(ResponseUserBookingsDto)
   findUserBookings(@CurrentUser() user: IUserPayload) {
     return this.bookingsService.findUserBookings(user.id);
+  }
+
+  @Endpoint({
+    summary: 'Get bookings of a business',
+    auth: true,
+    params: [{ name: 'id', type: Number, example: 1 }],
+    query: [{ name: 'date', example: '2026-05-25' }],
+    responseDto: ResponseOwnerBookingsDto,
+  })
+  @Get('business/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @TransformDTO(ResponseOwnerBookingsDto)
+  getBookings(
+    @Param('id', ParseIntPipe) businessId: number,
+    @Query() query: DateQueryDto,
+  ) {
+    return this.bookingsService.findByBusinessId(businessId, query.date);
   }
 
   @Endpoint({
