@@ -20,6 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:db:start": "docker compose -f docker-compose.test.yml up -d",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json",
+    "test:int": "dotenv -e .env.test -- node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest.integration.config.ts --runInBand --detectOpenHandles",
     "prisma:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
     "prisma:test:push": "dotenv -e .env.test -- prisma db push"
   },
