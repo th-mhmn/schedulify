@@ -1,6 +1,5 @@
 import { Business, Prisma, Service } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma.service';
-import { ServicesService } from '@/services/services.service';
 import {
   ConflictException,
   Injectable,
@@ -18,7 +17,6 @@ import { BookingWorkingHoursValidator } from './validators/booking-working-hours
 export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly servicesService: ServicesService,
     private readonly notificationQueue: NotificationQueue,
     private readonly workingHoursValidator: BookingWorkingHoursValidator,
     private readonly availabilityService: BookingAvailabilityService,
@@ -39,7 +37,7 @@ export class BookingsService {
 
     this.workingHoursValidator.validate(workingHours, bookingWindow);
 
-    this.availabilityService.validate(business, startTime, service);
+    await this.availabilityService.validate(business, startTime, service);
 
     const booking = await this.createBookingRecord(
       bookingWindow,
