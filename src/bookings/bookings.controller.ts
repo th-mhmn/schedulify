@@ -39,6 +39,7 @@ export class BookingsController {
     auth: true,
     idempotent: true,
   })
+  @TransformDTO(ResponseBookingDto)
   @Post()
   create(
     @Body() createBookingDto: CreateBookingDto,
