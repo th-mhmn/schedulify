@@ -1,7 +1,12 @@
 import { TimeRangeQueryDto } from '@/businesses/dto/time-range-query.dto';
 import { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { DateTime } from 'luxon';
 import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
 import { BlocksOverlapService } from './validators/blocks-overlap.validator';
 
@@ -15,25 +20,43 @@ export class BlocksService {
   async create(dto: AvailabilityBlockDto, businessId: number) {
     const { startTime, endTime, reason } = dto;
 
-    const date = this.convertStringToDate(startTime, endTime);
+    const { start, end } = this.convertStringToDate(startTime, endTime);
 
-    await this.blocksOverlap.validate(businessId, date.start, date.end);
+    await this.blocksOverlap.validate(
+      businessId,
+      start.toUTC().toJSDate(),
+      end.toUTC().toJSDate(),
+    );
 
     const block = await this.createBlockRecord(
       businessId,
-      date.start,
-      date.end,
+      start.toUTC().toJSDate(),
+      end.toUTC().toJSDate(),
       reason,
     );
     return { block };
   }
 
   async get(query?: TimeRangeQueryDto) {
+    if (!query?.from || !query?.to) {
+      throw new BadRequestException('from and to are required');
+    }
+
+    const from = DateTime.fromISO(query.from, { setZone: true })
+      .toUTC()
+      .toJSDate();
+    const to = DateTime.fromISO(query.to, { setZone: true }).toUTC().toJSDate();
+
     const blocks = await this.prisma.availabilityBlock.findMany({
-      where: { startTime: { gte: query?.from }, endTime: { lte: query?.to } },
+      where: {
+        AND: [{ startTime: { lt: to } }, { endTime: { gt: from } }],
+      },
     });
-    if (blocks.length === 0)
+
+    if (blocks.length === 0) {
       throw new NotFoundException('No blocks found on this time period');
+    }
+
     return blocks;
   }
 
@@ -66,9 +89,18 @@ export class BlocksService {
     );
   }
 
-  private convertStringToDate(s: string, e: string) {
-    const start = new Date(s);
-    const end = new Date(e);
+  private convertStringToDate(startTime: string, endTime: string) {
+    const start = DateTime.fromISO(startTime, { setZone: true });
+    const end = DateTime.fromISO(endTime, { setZone: true });
+
+    if (!start.isValid || !end.isValid) {
+      throw new BadRequestException('Invalid datetime format');
+    }
+
+    if (end <= start) {
+      throw new BadRequestException('endTime must be after startTime');
+    }
+
     return { start, end };
   }
 }
