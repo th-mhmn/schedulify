@@ -23,7 +23,6 @@ import {
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { ApiIdempotencyKey } from '@/common/api-idempotency-key.decorator';
 import { IdempotencyInterceptor } from '../interceptors/idempotency-key.interceptor';
-import { TransformDTO } from '../interceptors/transform-dto.interceptor';
 
 interface EndpointOptions {
   summary: string;
@@ -66,28 +65,10 @@ interface EndpointOptions {
 export function Endpoint(options: EndpointOptions) {
   const decorators: MethodDecorator[] = [];
 
-  decorators.push(
-    ApiOperation({
-      summary: options.summary,
-    }),
-  );
+  decorators.push(ApiOperation({ summary: options.summary }));
 
   if (options.requestDto) {
-    decorators.push(
-      ApiBody({
-        type: options.requestDto,
-      }),
-    );
-  }
-
-  if (options.responseDto) {
-    decorators.push(
-      ApiCreatedResponse({
-        type: options.responseDto,
-      }),
-    );
-
-    decorators.push(TransformDTO(options.responseDto) as MethodDecorator);
+    decorators.push(ApiBody({ type: options.requestDto }));
   }
 
   if (options.auth) {
@@ -136,15 +117,6 @@ export function Endpoint(options: EndpointOptions) {
 
   if (options.responseDto) {
     switch (options.successStatus) {
-      case 200:
-        decorators.push(
-          ApiOkResponse({
-            type: options.responseDto,
-            description: options.successDescription,
-          }),
-        );
-        break;
-
       case 201:
         decorators.push(
           ApiCreatedResponse({
@@ -153,15 +125,11 @@ export function Endpoint(options: EndpointOptions) {
           }),
         );
         break;
-
       case 204:
         decorators.push(
-          ApiNoContentResponse({
-            description: options.successDescription,
-          }),
+          ApiNoContentResponse({ description: options.successDescription }),
         );
         break;
-
       default:
         decorators.push(
           ApiOkResponse({
@@ -170,30 +138,27 @@ export function Endpoint(options: EndpointOptions) {
           }),
         );
     }
-
-    decorators.push(TransformDTO(options.responseDto) as MethodDecorator);
   }
 
-  if (options.badRequestDescription)
+  if (options.badRequestDescription) {
     decorators.push(
-      ApiBadRequestResponse({
-        description: options.badRequestDescription,
-      }),
+      ApiBadRequestResponse({ description: options.badRequestDescription }),
     );
+  }
 
-  if (options.notFoundDescription)
+  if (options.notFoundDescription) {
     decorators.push(
-      ApiNotFoundResponse({
-        description: options.notFoundDescription,
-      }),
+      ApiNotFoundResponse({ description: options.notFoundDescription }),
     );
+  }
 
-  if (options.requireOwnership)
+  if (options.requireOwnership) {
     decorators.push(
       ApiForbiddenResponse({
         description: options.forbiddenDescription ?? 'Forbidden',
       }),
     );
+  }
 
   return applyDecorators(...decorators);
 }
