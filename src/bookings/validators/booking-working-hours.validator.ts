@@ -11,21 +11,27 @@ export class BookingWorkingHoursValidator {
     const start_hour_minute = workingHours.startTime.split(':');
     const end_hour_minute = workingHours.endTime.split(':');
 
-    const openAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: Number(start_hour_minute[0]),
-      minute: Number(start_hour_minute[1]),
-    });
+    const openAt = DateTime.fromObject(
+      {
+        year,
+        month,
+        day,
+        hour: Number(start_hour_minute[0]),
+        minute: Number(start_hour_minute[1]),
+      },
+      { zone: startDate.zone },
+    );
 
-    const closeAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: Number(end_hour_minute[0]),
-      minute: Number(end_hour_minute[1]),
-    });
+    const closeAt = DateTime.fromObject(
+      {
+        year,
+        month,
+        day,
+        hour: Number(end_hour_minute[0]),
+        minute: Number(end_hour_minute[1]),
+      },
+      { zone: startDate.zone },
+    );
 
     if (closeAt < endDate || openAt > startDate)
       throw new ConflictException('Outside working hours');
