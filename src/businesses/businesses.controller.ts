@@ -35,7 +35,6 @@ import { DateQueryDto } from './dto/date-query-dto';
 import {
   ResponseBusinessDto,
   ResponseBusinessesDto,
-  ResponseSingleBusinessDto,
 } from './dto/response-business.dto';
 import { TimeRangeQueryDto } from './dto/time-range-query.dto';
 
@@ -79,9 +78,9 @@ export class BusinessesController {
     summary: 'Get a business by id',
     params: [{ name: 'id', type: Number, example: 1 }],
     notFoundDescription: 'Business not found',
-    responseDto: ResponseSingleBusinessDto,
+    responseDto: ResponseBusinessDto,
   })
-  @TransformDTO(ResponseSingleBusinessDto)
+  @TransformDTO(ResponseBusinessDto)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.businessesService.findOne(id);
