@@ -1,18 +1,18 @@
 import { IsTimeWithResolution } from '@/_core/decorators/is-time-with-resolution.decorator';
 import { NoDuplicateDayOfWeek } from '@/_core/decorators/no-duplicate-dayofweek.decorator';
-import { TimeRangeValidator } from '@/_core/validators/time-range.validator';
+import { IsValidTimeRange } from '@/_core/validators/time-range.validator';
 import { Type } from 'class-transformer';
 import {
-  IsInt,
-  Min,
-  Max,
-  Validate,
-  IsArray,
-  ArrayMinSize,
   ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
+@IsValidTimeRange({ message: 'startTime must be earlier than endTime' })
 export class SingleDayDto {
   @IsInt()
   @Min(0)
@@ -24,9 +24,6 @@ export class SingleDayDto {
 
   @IsTimeWithResolution(5)
   endTime: string;
-
-  @Validate(TimeRangeValidator)
-  _timeRangeCheck: true;
 }
 
 export class WeekScheduleDto {
