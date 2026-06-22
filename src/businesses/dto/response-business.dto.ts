@@ -53,13 +53,6 @@ export class ResponseBusinessDto {
   business: BusinessDto;
 }
 
-export class ResponseSingleBusinessDto {
-  @ApiProperty({ type: () => BusinessDto })
-  @Expose()
-  @Type(() => BusinessDto)
-  business: BusinessDto;
-}
-
 export class ResponseBusinessesDto {
   @ApiProperty({ type: () => BusinessDto, isArray: true })
   @Expose()

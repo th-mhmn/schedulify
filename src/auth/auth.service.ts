@@ -1,15 +1,16 @@
+import { UsersService } from '@/users/users.service';
 import {
   BadRequestException,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SignUpDto } from './dto/sign-up.dto';
-import { UsersService } from '@/users/users.service';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { SignUpDto } from './dto/sign-up.dto';
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
