@@ -35,7 +35,6 @@ export class AuthController {
     requestDto: SignInDto,
     successStatus: 200,
     successDescription: 'Signed in, cookies set',
-    auth: true,
   })
   @TransformDTO(ResponseUserDto)
   @Post('sign-in')
