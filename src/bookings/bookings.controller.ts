@@ -13,6 +13,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -38,6 +39,7 @@ export class BookingsController {
     auth: true,
     idempotent: true,
   })
+  @Post()
   create(
     @Body() createBookingDto: CreateBookingDto,
     @CurrentUser() user: IUserPayload,
