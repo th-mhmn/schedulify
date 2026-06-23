@@ -72,7 +72,7 @@ export class BusinessesController {
   @Get('my')
   @UseGuards(JwtAuthGuard)
   myBusinesses(@CurrentUser() user: IUserPayload) {
-    return this.businessesService.getUserBusinesses(user);
+    return this.businessesService.getUserBusinesses(user.id);
   }
 
   @Endpoint({

@@ -51,9 +51,9 @@ export class BusinessesService {
     });
   }
 
-  async getUserBusinesses(user: IUserPayload) {
+  async getUserBusinesses(userId: number) {
     const businesses = await this.prisma.business.findMany({
-      where: { ownerId: user.id },
+      where: { ownerId: userId },
     });
 
     return { businesses };
