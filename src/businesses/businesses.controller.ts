@@ -60,7 +60,7 @@ export class BusinessesController {
     @Body() createBusinessDto: CreateBusinessDto,
     @CurrentUser() user: IUserPayload,
   ) {
-    return this.businessesService.create(createBusinessDto, user);
+    return this.businessesService.create(createBusinessDto, user.id);
   }
 
   @Endpoint({

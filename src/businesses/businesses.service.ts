@@ -14,14 +14,14 @@ export class BusinessesService {
     private readonly businessValidator: BusinessValidator,
   ) {}
 
-  async create(dto: CreateBusinessDto, user: IUserPayload) {
+  async create(dto: CreateBusinessDto, userId: number) {
     const { name, timezone } = dto;
 
     await this.businessValidator.validateExisting(name);
 
-    await this.updateRole(user.id, user.role);
+    await this.updateRole(userId);
 
-    const business = await this.createBusinessRecord(name, timezone, user.id);
+    const business = await this.createBusinessRecord(name, timezone, userId);
 
     return { business };
   }
@@ -102,12 +102,15 @@ export class BusinessesService {
     return `This action removes a #${id} business`;
   }
 
-  private async updateRole(id: number, role: string) {
-    if (role === 'BUSINESS_OWNER') return;
-    await this.prisma.user.update({
-      where: { id },
-      data: { role: 'BUSINESS_OWNER' },
-    });
+  private async updateRole(id: number) {
+    try {
+      await this.prisma.user.update({
+        where: { id },
+        data: { role: 'BUSINESS_OWNER' },
+      });
+    } catch {
+      throw new NotFoundException('User not found');
+    }
   }
 
   private async createBusinessRecord(
