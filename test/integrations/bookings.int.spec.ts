@@ -321,12 +321,12 @@ describe('BookingsService Integration', () => {
   });
 
   describe('findUserBookings', () => {
-    const dto: CreateBookingDto = {
-      businessId: business.id,
-      serviceId: bookingService.id,
-      startTime: '2026-06-15T09:00:00+00:00',
-    };
     it('should return user bookings, does not return bookings from other users', async () => {
+      const dto: CreateBookingDto = {
+        businessId: business.id,
+        serviceId: bookingService.id,
+        startTime: '2026-06-15T09:00:00+00:00',
+      };
       await service.create(dto, customer.id);
       const { bookings } = await service.findUserBookings(customer.id);
       expect(bookings).toHaveLength(1);
