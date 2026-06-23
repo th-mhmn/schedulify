@@ -8,6 +8,7 @@ import { BlocksService } from '@/blocks/blocks.service';
 import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
 import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
 import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
+import { ResponseOwnerBookingsDto } from '@/bookings/dto/response-booking.dto';
 import { CreateServiceDto } from '@/services/dto/create-service.dto';
 import {
   ResponseCreateServiceDto,
@@ -162,6 +163,24 @@ export class BusinessesController {
     @Body() dto: AvailabilityBlockDto,
   ) {
     return this.blocksService.create(dto, id);
+  }
+
+  @Endpoint({
+    summary: 'Get bookings of a business',
+    auth: true,
+    params: [{ name: 'id', type: Number, example: 1 }],
+    query: [{ name: 'date', example: '2026-05-25' }],
+    responseDto: ResponseOwnerBookingsDto,
+  })
+  @Get(':id/bookings')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('BUSINESS_OWNER')
+  @TransformDTO(ResponseOwnerBookingsDto)
+  getBookings(
+    @Param('id', ParseIntPipe) businessId: number,
+    @Query() query: DateQueryDto,
+  ) {
+    return this.businessesService.getBookings(businessId, query.date);
   }
 
   @Endpoint({

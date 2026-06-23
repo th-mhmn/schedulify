@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DateTime } from 'luxon';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { Business } from './entities/business.entity';
@@ -56,6 +57,27 @@ export class BusinessesService {
     });
 
     return { businesses };
+  }
+
+  async getBookings(businessId: number, date: string) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+    const dayStart = DateTime.fromISO(date).setZone(business?.timezone);
+    const dayEnd = dayStart.plus({ days: 1 });
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        businessId,
+        startTime: {
+          gte: dayStart.toJSDate(),
+          lt: dayEnd.toJSDate(),
+        },
+      },
+    });
+
+    return { bookings };
   }
 
   findAll() {
