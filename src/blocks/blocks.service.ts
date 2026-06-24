@@ -35,11 +35,7 @@ export class BlocksService {
     return { block };
   }
 
-  async get(query?: TimeRangeQueryDto) {
-    if (!query?.from || !query?.to) {
-      throw new BadRequestException('from and to are required');
-    }
-
+  async get(businessId: number, query: TimeRangeQueryDto) {
     const from = DateTime.fromISO(query.from, { setZone: true })
       .toUTC()
       .toJSDate();
@@ -47,15 +43,13 @@ export class BlocksService {
 
     const blocks = await this.prisma.availabilityBlock.findMany({
       where: {
-        AND: [{ startTime: { lt: to } }, { endTime: { gt: from } }],
+        businessId,
+        startTime: { lt: to },
+        endTime: { gt: from },
       },
     });
 
-    if (blocks.length === 0) {
-      throw new NotFoundException('No blocks found on this time period');
-    }
-
-    return blocks;
+    return { blocks };
   }
 
   async delete(id: number) {
