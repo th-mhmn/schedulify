@@ -1,5 +1,5 @@
 import { WorkingHours } from '@/generated/prisma/client';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { BookingWindow } from '../types/booking-window.type';
 import { BookingWorkingHoursValidator } from './booking-working-hours.validator';
@@ -31,7 +31,7 @@ describe('BookingWorkingHoursValidator', () => {
     });
 
     describe('when booking starts before opening', () => {
-      it('should throw ConflictException', () => {
+      it('should throw BadRequestException', () => {
         const workingHours = {
           startMinute: 9 * 60,
           endMinute: 17 * 60,
@@ -43,13 +43,13 @@ describe('BookingWorkingHoursValidator', () => {
         } as BookingWindow;
 
         expect(() => validator.validate(workingHours, bookingWindow)).toThrow(
-          ConflictException,
+          BadRequestException,
         );
       });
     });
 
     describe('when booking ends after closing', () => {
-      it('should throw ConflictException', () => {
+      it('should throw BadRequestException', () => {
         const workingHours = {
           startMinute: 9 * 60,
           endMinute: 17 * 60,
@@ -61,7 +61,7 @@ describe('BookingWorkingHoursValidator', () => {
         } as BookingWindow;
 
         expect(() => validator.validate(workingHours, bookingWindow)).toThrow(
-          ConflictException,
+          BadRequestException,
         );
       });
     });

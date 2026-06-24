@@ -4,7 +4,11 @@ import { CreateBookingDto } from '@/bookings/dto/create-booking.dto';
 import { Business, Service, User } from '@/generated/prisma/client';
 import { NotificationQueue } from '@/notifications/notification.queue';
 import { PrismaService } from '@/prisma.service';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('BookingsService Integration', () => {
@@ -223,10 +227,10 @@ describe('BookingsService Integration', () => {
 
         await expect(
           service.create(dto_before_opening, customer.id),
-        ).rejects.toThrow(ConflictException);
+        ).rejects.toThrow(BadRequestException);
         await expect(
           service.create(dto_after_closing, customer.id),
-        ).rejects.toThrow(ConflictException);
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw when booking would extend beyond closing', async () => {
@@ -237,7 +241,7 @@ describe('BookingsService Integration', () => {
         };
 
         await expect(service.create(dto, customer.id)).rejects.toThrow(
-          ConflictException,
+          BadRequestException,
         );
       });
     });
@@ -314,7 +318,7 @@ describe('BookingsService Integration', () => {
         };
 
         await expect(service.create(dto, customer.id)).rejects.toThrow(
-          ConflictException,
+          BadRequestException,
         );
       });
     });

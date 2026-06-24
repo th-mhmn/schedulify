@@ -1,6 +1,6 @@
 import { extractHourMinute } from '@/_core/utils/time.utils';
 import { WorkingHours } from '@/generated/prisma/client';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { BookingWindow } from '../types/booking-window.type';
 
@@ -39,6 +39,6 @@ export class BookingWorkingHoursValidator {
     );
 
     if (closeAt < endDate || openAt > startDate)
-      throw new ConflictException('Outside working hours');
+      throw new BadRequestException('Outside working hours');
   }
 }
