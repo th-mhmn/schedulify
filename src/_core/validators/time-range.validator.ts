@@ -5,13 +5,9 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
+import { timeToMinutes } from '../utils/time.utils';
 
 const HH_MM_STRICT_24H = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-function toMinutes(hhmm: string): number {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
 
 @ValidatorConstraint({ name: 'TimeRangeValidator', async: false })
 export class TimeRangeConstraint implements ValidatorConstraintInterface {
@@ -23,7 +19,7 @@ export class TimeRangeConstraint implements ValidatorConstraintInterface {
     if (!HH_MM_STRICT_24H.test(startTime) || !HH_MM_STRICT_24H.test(endTime))
       return true;
 
-    return toMinutes(startTime) < toMinutes(endTime);
+    return timeToMinutes(startTime) < timeToMinutes(endTime);
   }
 
   defaultMessage(): string {

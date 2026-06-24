@@ -1,3 +1,4 @@
+import { extractHourMinute } from '@/_core/utils/time.utils';
 import { WorkingHours } from '@/generated/prisma/client';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
@@ -8,16 +9,20 @@ export class BookingWorkingHoursValidator {
   validate(workingHours: WorkingHours, bookingWindow: BookingWindow): void {
     const { startDate, endDate } = bookingWindow;
     const { day, month, year } = startDate;
-    const start_hour_minute = workingHours.startTime.split(':');
-    const end_hour_minute = workingHours.endTime.split(':');
+    const { hour: startHour, minute: startMinute } = extractHourMinute(
+      workingHours.startMinute,
+    );
+    const { hour: endHour, minute: endMinute } = extractHourMinute(
+      workingHours.endMinute,
+    );
 
     const openAt = DateTime.fromObject(
       {
         year,
         month,
         day,
-        hour: Number(start_hour_minute[0]),
-        minute: Number(start_hour_minute[1]),
+        hour: startHour,
+        minute: startMinute,
       },
       { zone: startDate.zone },
     );
@@ -27,8 +32,8 @@ export class BookingWorkingHoursValidator {
         year,
         month,
         day,
-        hour: Number(end_hour_minute[0]),
-        minute: Number(end_hour_minute[1]),
+        hour: endHour,
+        minute: endMinute,
       },
       { zone: startDate.zone },
     );

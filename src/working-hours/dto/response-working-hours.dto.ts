@@ -1,4 +1,5 @@
-import { Expose, Transform, Type } from 'class-transformer';
+import { minutesToTime } from '@/_core/utils/time.utils';
+import { Expose, Transform } from 'class-transformer';
 
 export class WorkingHoursDto {
   @Expose()
@@ -6,9 +7,11 @@ export class WorkingHoursDto {
   dayOfWeek: string;
 
   @Expose()
+  @Transform(({ obj }) => minutesToTime(obj.startMinute))
   startTime: string;
 
   @Expose()
+  @Transform(({ obj }) => minutesToTime(obj.endMinute))
   endTime: string;
 }
 

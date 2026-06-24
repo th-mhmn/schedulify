@@ -1,8 +1,9 @@
+import { timeToMinutes } from '@/_core/utils/time.utils';
+import { Prisma } from '@/generated/prisma/browser';
 import { PrismaService } from '@/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { WeekScheduleDto } from './dto/working-hours.dto';
 import * as _ from 'lodash';
-import { Prisma } from '@/generated/prisma/browser';
+import { WeekScheduleDto } from './dto/working-hours.dto';
 
 @Injectable()
 export class WorkingHoursService {
@@ -13,9 +14,16 @@ export class WorkingHoursService {
       async (tx) => {
         await tx.workingHours.deleteMany({ where: { businessId } });
         const payload = {
-          days: dto.days.map((d) => ({ ...d, businessId })),
+          days: dto.days.map((day) => {
+            const { startTime, endTime, ...rest } = day;
+            return {
+              ...rest,
+              businessId,
+              startMinute: timeToMinutes(day.startTime),
+              endMinute: timeToMinutes(day.endTime),
+            };
+          }),
         };
-
         const weeklySchedule = await tx.workingHours.createManyAndReturn({
           data: payload.days,
         });

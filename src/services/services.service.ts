@@ -1,3 +1,8 @@
+import { formatDateTimeToHour } from '@/_core/utils/date';
+import { extractHourMinute } from '@/_core/utils/time.utils';
+import { Prisma } from '@/generated/prisma/browser';
+import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
+import { PrismaService } from '@/prisma.service';
 import {
   BadRequestException,
   Injectable,
@@ -7,10 +12,6 @@ import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { PrismaService } from '@/prisma.service';
-import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
-import { formatDateTimeToHour } from '@/_core/utils/date';
-import { Prisma } from '@/generated/prisma/browser';
 
 @Injectable()
 export class ServicesService {
@@ -66,8 +67,12 @@ export class ServicesService {
 
     if (!workingHours) return { workingHours: [] };
 
-    const start_hour_minute = workingHours.startTime.split(':');
-    const end_hour_minute = workingHours.endTime.split(':');
+    const { hour: startHour, minute: startMinute } = extractHourMinute(
+      workingHours.startMinute,
+    );
+    const { hour: endHour, minute: endMinute } = extractHourMinute(
+      workingHours.endMinute,
+    );
 
     const { day, month, year } = dayStart;
 
@@ -75,16 +80,16 @@ export class ServicesService {
       year,
       month,
       day,
-      hour: Number(start_hour_minute[0]),
-      minute: Number(start_hour_minute[1]),
+      hour: startHour,
+      minute: startMinute,
     });
 
     const closeAt = DateTime.fromObject({
       year,
       month,
       day,
-      hour: Number(end_hour_minute[0]),
-      minute: Number(end_hour_minute[1]),
+      hour: endHour,
+      minute: endMinute,
     });
 
     const candidates = await this.generateCandidates(
