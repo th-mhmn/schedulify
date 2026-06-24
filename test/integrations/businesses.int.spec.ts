@@ -131,8 +131,8 @@ describe('BusinessesService Integration', () => {
         data: {
           businessId: business.id,
           dayOfWeek: 0,
-          startTime: '09:00',
-          endTime: '18:00',
+          startMinute: 9 * 60,
+          endMinute: 18 * 60,
         },
       });
 

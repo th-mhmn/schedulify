@@ -15,8 +15,8 @@ describe('BookingWorkingHoursValidator', () => {
     describe('when booking is inside working hours', () => {
       it('should not throw', () => {
         const workingHours = {
-          startTime: '09:00',
-          endTime: '17:00',
+          startMinute: 9 * 60,
+          endMinute: 17 * 60,
         } as WorkingHours;
 
         const bookingWindow = {
@@ -33,8 +33,8 @@ describe('BookingWorkingHoursValidator', () => {
     describe('when booking starts before opening', () => {
       it('should throw ConflictException', () => {
         const workingHours = {
-          startTime: '09:00',
-          endTime: '17:00',
+          startMinute: 9 * 60,
+          endMinute: 17 * 60,
         } as WorkingHours;
 
         const bookingWindow = {
@@ -51,8 +51,8 @@ describe('BookingWorkingHoursValidator', () => {
     describe('when booking ends after closing', () => {
       it('should throw ConflictException', () => {
         const workingHours = {
-          startTime: '09:00',
-          endTime: '17:00',
+          startMinute: 9 * 60,
+          endMinute: 17 * 60,
         } as WorkingHours;
 
         const bookingWindow = {
@@ -69,8 +69,8 @@ describe('BookingWorkingHoursValidator', () => {
     describe('when booking exactly matches opening and closing hours', () => {
       it('should not throw', () => {
         const workingHours = {
-          startTime: '09:00',
-          endTime: '11:00',
+          startMinute: 9 * 60,
+          endMinute: 11 * 60,
         } as WorkingHours;
 
         const bookingWindow = {
