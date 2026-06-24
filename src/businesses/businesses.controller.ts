@@ -7,7 +7,10 @@ import { RoleGuard } from '@/auth/guards/role.guard';
 import { BlocksService } from '@/blocks/blocks.service';
 import { AvailabilityBlockDto } from '@/blocks/dto/add-availability-block.dto';
 import { ResponseAvailabilityDto } from '@/blocks/dto/response-availability.dto';
-import { ResponseBlockDto } from '@/blocks/dto/response-block.dto';
+import {
+  ResponseBlockDto,
+  ResponseBlocksDto,
+} from '@/blocks/dto/response-block.dto';
 import { ResponseOwnerBookingsDto } from '@/bookings/dto/response-booking.dto';
 import { CreateServiceDto } from '@/services/dto/create-service.dto';
 import {
@@ -196,9 +199,12 @@ export class BusinessesController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles('BUSINESS_OWNER')
   @Get(':id/blocks')
-  @TransformDTO(ResponseBlockDto)
-  getBlocks(@Query() query: TimeRangeQueryDto) {
-    return this.blocksService.get(query);
+  @TransformDTO(ResponseBlocksDto)
+  getBlocks(
+    @Param('id', ParseIntPipe) businessId: number,
+    @Query() query: TimeRangeQueryDto,
+  ) {
+    return this.blocksService.get(businessId, query);
   }
 
   @Endpoint({

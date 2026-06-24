@@ -19,3 +19,9 @@ export class ResponseBlockDto {
   @Type(() => Block)
   block: Block;
 }
+
+export class ResponseBlocksDto {
+  @Expose()
+  @Type(() => Block)
+  blocks: Block[];
+}
