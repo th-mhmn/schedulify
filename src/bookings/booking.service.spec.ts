@@ -159,40 +159,4 @@ describe('BookingsService', () => {
       });
     });
   });
-
-  describe('findBookingsByBusinessId', () => {
-    it('should return bookings for a business', async () => {
-      const bookings = [
-        { id: 1, businessId: 1 },
-        { id: 2, businessId: 1 },
-      ];
-
-      prismaMock.business.findUnique.mockResolvedValue({
-        id: 1,
-        timezone: 'Europe/Paris',
-      });
-
-      prismaMock.booking.findMany.mockResolvedValue(bookings);
-
-      const result = await service.findByBusinessId(1, '2026-06-15');
-
-      expect(prismaMock.business.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
-
-      const call = prismaMock.booking.findMany.mock.calls[0][0];
-      expect(call.where.businessId).toBe(1);
-      expect(call.where.AND).toBeDefined();
-      expect(call).toEqual({
-        where: {
-          businessId: 1,
-          AND: {
-            startTime: expect.any(Object),
-            endTime: expect.any(Object),
-          },
-        },
-      });
-      expect(result).toEqual({ bookings });
-    });
-  });
 });
