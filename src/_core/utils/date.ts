@@ -1,11 +1,10 @@
 import { DateTime } from 'luxon';
+import { padZero } from './time.utils';
 
 export const formatDateTimeToHour = (date: DateTime) => {
   let hour: number | string = date.hour;
   let minute: number | string = date.minute;
-  if (hour < 10) hour = `0${hour}`;
-  if (minute < 10) minute = `0${minute}`;
-  return `${hour}:${minute}`;
+  return `${padZero(hour)}:${padZero(minute)}`;
 };
 
 export const formatUtcToHour = (date_UTC: Date) => {
