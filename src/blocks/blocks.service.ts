@@ -24,11 +24,7 @@ export class BlocksService {
 
     const { start, end } = this.convertStringToDate(startTime, endTime);
 
-    await this.blocksOverlap.validate(
-      businessId,
-      start.toUTC().toJSDate(),
-      end.toUTC().toJSDate(),
-    );
+    await this.blocksOverlap.validate(businessId, start, end);
 
     const block = await this.createBlockRecord(
       businessId,
@@ -79,7 +75,7 @@ export class BlocksService {
     endTime: Date,
     reason?: string,
   ) {
-    await this.prisma.$transaction(
+    return await this.prisma.$transaction(
       async (prisma) => {
         return await prisma.availabilityBlock.create({
           data: {
