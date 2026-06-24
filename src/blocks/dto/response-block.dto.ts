@@ -1,6 +1,6 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
-export class ResponseBlockDto {
+class Block {
   @Expose()
   id: number;
 
@@ -12,7 +12,10 @@ export class ResponseBlockDto {
 
   @Expose()
   reason?: string;
+}
 
+export class ResponseBlockDto {
   @Expose()
-  createdAt: string;
+  @Type(() => Block)
+  block: Block;
 }
