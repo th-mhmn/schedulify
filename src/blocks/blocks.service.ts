@@ -20,6 +20,8 @@ export class BlocksService {
   async create(dto: AvailabilityBlockDto, businessId: number) {
     const { startTime, endTime, reason } = dto;
 
+    await this.validateBusiness(businessId);
+
     const { start, end } = this.convertStringToDate(startTime, endTime);
 
     await this.blocksOverlap.validate(
@@ -64,11 +66,18 @@ export class BlocksService {
     return await this.prisma.availabilityBlock.delete({ where: { id } });
   }
 
+  private async validateBusiness(id: number) {
+    const business = await this.prisma.business.findUnique({
+      where: { id },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+  }
+
   private async createBlockRecord(
     businessId: number,
     startTime: Date,
     endTime: Date,
-    reason: string,
+    reason?: string,
   ) {
     await this.prisma.$transaction(
       async (prisma) => {
