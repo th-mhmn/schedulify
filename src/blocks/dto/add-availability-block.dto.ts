@@ -22,5 +22,5 @@ export class AvailabilityBlockDto {
   @MinLength(3)
   @MaxLength(64)
   @IsOptional()
-  reason: string;
+  reason?: string;
 }
