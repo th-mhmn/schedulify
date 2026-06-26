@@ -4,6 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
+import { cleanDatabase } from '../helpers/db';
 import { expectSuccessResponse } from '../helpers/response';
 
 describe('Auth E2E', () => {
@@ -26,8 +27,7 @@ describe('Auth E2E', () => {
   });
 
   beforeEach(async () => {
-    await prisma.business.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDatabase(prisma);
   });
 
   afterAll(async () => {
