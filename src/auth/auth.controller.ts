@@ -2,7 +2,16 @@ import { CurrentUser } from '@/_core/decorators/current-user.decorator';
 import { Endpoint } from '@/_core/decorators/endpoint.decorator';
 import { TransformDTO } from '@/_core/interceptors/transform-dto.interceptor';
 import { ResponseUserDto } from '@/users/dto/response-user.dto';
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -38,6 +47,7 @@ export class AuthController {
   })
   @TransformDTO(ResponseUserDto)
   @Post('sign-in')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   signIn(
     @CurrentUser() user: IUserPayload,
@@ -55,6 +65,7 @@ export class AuthController {
     authCookie: 'Refresh',
   })
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshAuthGuard)
   async refresh(
     @CurrentUser() user: IUserPayload,
@@ -73,7 +84,7 @@ export class AuthController {
   @TransformDTO(ResponseUserDto)
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: IUserPayload) {
+  me(@CurrentUser() user: IUserPayload) {
     return { user };
   }
 
