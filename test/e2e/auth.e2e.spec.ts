@@ -2,7 +2,9 @@ import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
+import { expectSuccessResponse } from '../helpers/response';
 
 describe('Auth E2E', () => {
   let app: INestApplication;
@@ -15,12 +17,16 @@ describe('Auth E2E', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+
+    app.use(cookieParser());
+
     await app.init();
 
     prisma = moduleRef.get(PrismaService);
   });
 
   beforeEach(async () => {
+    await prisma.business.deleteMany();
     await prisma.user.deleteMany();
   });
 
@@ -49,7 +55,7 @@ describe('Auth E2E', () => {
       expect(user?.role).toBe('USER');
       expect(user?.passwordHash).not.toBe(dto.password);
     });
-    it('should throw if email is duplicated', async () => {
+    it('should return 400 if email is duplicated', async () => {
       const email = 'owner@test.com';
       const password = 'Password123!';
 
@@ -69,7 +75,7 @@ describe('Auth E2E', () => {
         })
         .expect(400);
     });
-    it('should throw if dto is invalid', async () => {
+    it('should return 400 if dto is invalid', async () => {
       request(app.getHttpServer())
         .post('/auth/sign-up')
         .send({
@@ -103,7 +109,7 @@ describe('Auth E2E', () => {
       expect(response.headers['set-cookie']).toBeDefined();
       expect(response.status).toBe(200);
     });
-    it('should throw if password is wrong', async () => {
+    it('should return 401 if password is wrong', async () => {
       const dto = {
         email: 'user@test.com',
         password: 'Password123!',
@@ -116,7 +122,7 @@ describe('Auth E2E', () => {
         .send({ email: dto.email, password: '123' })
         .expect(401);
     });
-    it('should throw when email is unknown', async () => {
+    it('should return 401 when email is unknown', async () => {
       request(app.getHttpServer())
         .post('/auth/sign-in')
         .send({ email: 'unknown@test.com', password: '123' })
@@ -125,7 +131,7 @@ describe('Auth E2E', () => {
   });
 
   describe('Protected Routes', () => {
-    it('should throw if cookie header is not provided', async () => {
+    it('should return 401 if cookie header is not provided', async () => {
       request(app.getHttpServer()).post('/businesses').expect(401);
     });
     it('should pass if cookie is valid', async () => {
@@ -136,22 +142,23 @@ describe('Auth E2E', () => {
 
       await request(app.getHttpServer()).post('/auth/sign-up').send(dto);
 
-      const response = await request(app.getHttpServer())
+      const signInRes = await request(app.getHttpServer())
         .post('/auth/sign-in')
         .send(dto);
 
-      const cookie = response.headers['set-cookie'];
+      const cookie = signInRes.headers['set-cookie'];
 
-      request(app.getHttpServer())
+      const businessRes = await request(app.getHttpServer())
         .post('/businesses')
         .set('Cookie', cookie)
-        .send({ name: 'Business-1', timezone: 'UTC' })
-        .expect(201);
+        .send({ name: 'Business-1', timezone: 'UTC' });
+
+      expect(businessRes.status).toBe(201);
     });
   });
 
   describe('Sign Out', () => {
-    it('should throw after logout', async () => {
+    it('should return 401 after logout', async () => {
       const dto = {
         email: 'user@test.com',
         password: 'Password123!',
@@ -189,11 +196,16 @@ describe('Auth E2E', () => {
 
       const cookie = signUpRes.headers['set-cookie'];
 
-      request(app.getHttpServer())
+      const profileRes = await request(app.getHttpServer())
         .get('/auth/me')
-        .set('Cookie', cookie)
-        .expect(200)
-        .expect({ email: dto.email });
+        .set('Cookie', cookie);
+
+      expect(profileRes.status).toBe(200);
+      expectSuccessResponse(profileRes.body, {
+        id: expect.any(Number),
+        email: dto.email,
+        role: 'USER',
+      });
     });
   });
 });
