@@ -1,14 +1,14 @@
+import { ROLES_KEY } from '@/_core/decorators/roles.decorator';
+import { ResourceService } from '@/resource/resource.service';
 import {
-  Injectable,
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  BadRequestException,
+  Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { ResourceService } from '@/resource/resource.service';
-import { ROLES_KEY } from '@/_core/decorators/roles.decorator';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -54,7 +54,7 @@ export class RoleGuard implements CanActivate {
 
   private extractResource(path: string): string | null {
     const paths = path.split('/');
-    if (paths.length > 3) return paths[3];
+    if (paths.length > 1) return paths[1];
     return null;
   }
 }
