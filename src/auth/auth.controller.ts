@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
@@ -22,7 +21,6 @@ import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @ApiTags('auth')
-@Throttle({ short: { ttl: 1000, limit: 1 }, long: { ttl: 60000, limit: 5 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -95,7 +93,6 @@ export class AuthController {
     successStatus: 200,
     successDescription: 'Signed Out',
   })
-  @Post('sign-out')
   @Post('sign-out')
   @UseGuards(JwtAuthGuard)
   async signOut(
