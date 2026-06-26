@@ -92,15 +92,12 @@ export class AuthService {
     };
   }
 
-  async signOut(userId: number, response: Response) {
+  async signOut(userId: number) {
     try {
       await this.usersService.updateUser({
         where: { id: userId },
         data: { refreshToken: null },
       });
-      response.clearCookie('Authentication');
-      response.clearCookie('Refresh');
-      response.status(200).json({ message: 'Successfully signed out' });
     } catch (error: any) {
       this.logger.error('Sign out error:', {
         error: error.message,

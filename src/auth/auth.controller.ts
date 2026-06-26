@@ -96,12 +96,15 @@ export class AuthController {
     successDescription: 'Signed Out',
   })
   @Post('sign-out')
+  @Post('sign-out')
   @UseGuards(JwtAuthGuard)
   async signOut(
     @CurrentUser() user: IUserPayload,
-    @Res({ passthrough: true }) response,
+    @Res({ passthrough: true }) res,
   ) {
-    await this.authService.signOut(user.id, response);
+    await this.authService.signOut(user.id);
+    res.clearCookie('Authentication');
+    res.clearCookie('Refresh');
     return { message: 'Successfully signed out' };
   }
 }
