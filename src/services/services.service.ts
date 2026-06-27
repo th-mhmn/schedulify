@@ -1,4 +1,3 @@
-import { formatDateTimeToHour } from '@/_core/utils/date';
 import { extractHourMinute } from '@/_core/utils/time.utils';
 import { Prisma } from '@/generated/prisma/browser';
 import { AvailabilityBlock, Booking } from '@/generated/prisma/client';
@@ -8,7 +7,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -59,13 +57,16 @@ export class ServicesService {
     if (!service || service.businessId !== businessId)
       throw new NotFoundException('Service not found');
 
-    const dayStart = DateTime.fromISO(date);
+    const businessZone = business.timezone;
+    const dayStart = DateTime.fromISO(date, { zone: businessZone });
+    if (!dayStart.isValid) throw new BadRequestException('Invalid date format');
+
     const dayOfWeek = dayStart.weekday - 1;
     const workingHours = await this.prisma.workingHours.findFirst({
       where: { businessId, dayOfWeek },
     });
 
-    if (!workingHours) return { workingHours: [] };
+    if (!workingHours) return { slots: [] };
 
     const { hour: startHour, minute: startMinute } = extractHourMinute(
       workingHours.startMinute,
@@ -74,36 +75,38 @@ export class ServicesService {
       workingHours.endMinute,
     );
 
-    const { day, month, year } = dayStart;
+    const openAt = DateTime.fromObject(
+      {
+        year: dayStart.year,
+        month: dayStart.month,
+        day: dayStart.day,
+        hour: startHour,
+        minute: startMinute,
+      },
+      { zone: businessZone },
+    );
 
-    const openAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: startHour,
-      minute: startMinute,
-    });
-
-    const closeAt = DateTime.fromObject({
-      year,
-      month,
-      day,
-      hour: endHour,
-      minute: endMinute,
-    });
+    const closeAt = DateTime.fromObject(
+      {
+        year: dayStart.year,
+        month: dayStart.month,
+        day: dayStart.day,
+        hour: endHour,
+        minute: endMinute,
+      },
+      { zone: businessZone },
+    );
 
     const candidates = await this.generateCandidates(
       openAt,
       closeAt,
       service.durationMinutes,
     );
+    const slots = candidates.map((c) => c.toUTC().toISO());
 
-    const formattedCandidates = candidates.map((c) =>
-      formatDateTimeToHour(c.setZone(business.timezone)),
-    );
-
-    const reserved = await this.checkReserved(business.timezone, date);
-    return { workingHours, reserved, candidates: formattedCandidates };
+    return {
+      slots,
+    };
   }
 
   async findByBusinessId(businessId: number) {
@@ -138,35 +141,43 @@ export class ServicesService {
     openAt: DateTime,
     closeAt: DateTime,
     durationMinutes: number,
-  ) {
-    let candidates: DateTime<boolean>[] = [];
+  ): Promise<DateTime[]> {
     const latestStart = closeAt.minus({ minutes: durationMinutes });
-    if (latestStart < openAt) return candidates;
+    if (latestStart < openAt) return [];
 
-    let indexDateTime = openAt;
-    const diff = closeAt.diff(openAt, 'minutes').toObject().minutes!;
+    const overlaps = await this.getOverlaps(openAt, closeAt);
+    const blocks = overlaps?.blocks ?? [];
+    const bookings = overlaps?.bookings ?? [];
 
-    for (let i = 0; i < diff; i += 5) {
-      const indexDateEnd = indexDateTime.plus({ minutes: durationMinutes });
-      const isReserved = await this.getOverlaps(indexDateTime, indexDateEnd);
-      if (!isReserved) candidates.push(indexDateTime);
-      indexDateTime = indexDateTime.plus({ minutes: 5 });
+    const candidates: DateTime[] = [];
+    let cursor = openAt;
+
+    while (cursor <= latestStart) {
+      const cursorEnd = cursor.plus({ minutes: durationMinutes });
+
+      const isBlocked = blocks.some(
+        (b) =>
+          cursor.toJSDate() < b.endTime && cursorEnd.toJSDate() > b.startTime,
+      );
+      const isBooked = bookings.some(
+        (b) =>
+          cursor.toJSDate() < b.endTime && cursorEnd.toJSDate() > b.startTime,
+      );
+
+      if (!isBlocked && !isBooked) candidates.push(cursor);
+
+      cursor = cursor.plus({ minutes: 5 });
     }
 
-    const sortedCandidates = _.sortBy(candidates, [
-      (c) => c.get('hour'),
-      (c) => c.get('minute'),
-    ]);
-
-    return sortedCandidates;
+    return candidates;
   }
 
   async checkReserved(
     timezone: string,
-    startISO: string,
+    date: string,
     durationMinutes?: number,
   ) {
-    const startDate = DateTime.fromISO(startISO!).setZone(timezone);
+    const startDate = DateTime.fromISO(date, { zone: timezone });
     const endDate = startDate.plus(
       durationMinutes ? { minutes: durationMinutes } : { days: 1 },
     );
@@ -178,27 +189,23 @@ export class ServicesService {
     startDate: DateTime,
     endDate: DateTime,
   ): Promise<{ blocks: AvailabilityBlock[]; bookings: Booking[] } | null> {
-    const blocks = await this.prisma.availabilityBlock.findMany({
-      where: {
-        AND: {
+    const [blocks, bookings] = await Promise.all([
+      this.prisma.availabilityBlock.findMany({
+        where: {
           startTime: { lt: endDate.toJSDate() },
           endTime: { gt: startDate.toJSDate() },
         },
-      },
-    });
-
-    const bookings = await this.prisma.booking.findMany({
-      where: {
-        AND: {
+      }),
+      this.prisma.booking.findMany({
+        where: {
           startTime: { lt: endDate.toJSDate() },
           endTime: { gt: startDate.toJSDate() },
+          status: 'CONFIRMED',
         },
-        status: 'CONFIRMED',
-      },
-    });
+      }),
+    ]);
 
     if (blocks.length === 0 && bookings.length === 0) return null;
-
     return { blocks, bookings };
   }
 }

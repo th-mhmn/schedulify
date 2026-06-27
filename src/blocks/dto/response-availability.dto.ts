@@ -1,7 +1,6 @@
-import { WorkingHoursDto } from '@/working-hours/dto/response-working-hours.dto';
-import { Expose, Transform, Type } from 'class-transformer';
-import { Booking } from '@/bookings/dto/response-booking.dto';
 import { formatUtcToHour } from '@/_core/utils/date';
+import { Booking } from '@/bookings/dto/response-booking.dto';
+import { Expose, Transform, Type } from 'class-transformer';
 
 class Block {
   @Expose()
@@ -28,13 +27,5 @@ class ReservedDto {
 
 export class ResponseAvailabilityDto {
   @Expose()
-  @Type(() => WorkingHoursDto)
-  workingHours: WorkingHoursDto[];
-
-  @Expose()
-  @Type(() => ReservedDto)
-  reserved: ReservedDto;
-
-  @Expose()
-  candidates: string[];
+  slots: string[];
 }
