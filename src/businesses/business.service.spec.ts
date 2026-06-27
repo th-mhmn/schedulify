@@ -66,6 +66,7 @@ describe('BusinessesService', () => {
 
       expect(businessValidatorMock.validateExisting).toHaveBeenCalledWith(
         dto.name,
+        user.id,
       );
 
       expect(service['updateRole']).toHaveBeenCalledWith(user.id);

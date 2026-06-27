@@ -1,6 +1,7 @@
 import { PrismaService } from '@/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { DateTime } from 'luxon';
 import { BlocksService } from './blocks.service';
 import { AvailabilityBlockDto } from './dto/add-availability-block.dto';
 import { BlocksOverlapService } from './validators/blocks-overlap.validator';
@@ -39,12 +40,12 @@ describe('BlocksService', () => {
 
   describe('create', () => {
     it('should add a block', async () => {
-      const startTime = '2026-06-15T10:00:00';
-      const endTime = '2026-06-15T11:00:00';
+      const startTime = '2026-06-15T10:00:00.000Z';
+      const endTime = '2026-06-15T11:00:00.000Z';
       const reason = 'Lunch Time';
 
-      const startDate = new Date(startTime);
-      const endDate = new Date(endTime);
+      const startDate = DateTime.fromISO(startTime, { setZone: true });
+      const endDate = DateTime.fromISO(endTime, { setZone: true });
 
       const businessId = 1;
 

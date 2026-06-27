@@ -1,5 +1,6 @@
 import { PrismaService } from '@/prisma.service';
 import { Test } from '@nestjs/testing';
+import { DateTime } from 'luxon';
 import { BlocksOverlapService } from './blocks-overlap.validator';
 
 describe('blocksOverlapValidator', () => {
@@ -7,6 +8,9 @@ describe('blocksOverlapValidator', () => {
 
   const prismaMock = {
     availabilityBlock: { findFirst: jest.fn() },
+    workingHours: {
+      findFirst: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -27,12 +31,18 @@ describe('blocksOverlapValidator', () => {
   describe('validate', () => {
     const businessId = 1;
     const date = {
-      start: new Date('2026-06-15T10:00:00'),
-      end: new Date('2026-06-15T11:00:00'),
+      start: DateTime.fromISO('2026-06-15T10:00:00'),
+      end: DateTime.fromISO('2026-06-15T11:00:00'),
     };
 
     it('should pass if no blocks overlap', async () => {
       prismaMock.availabilityBlock.findFirst.mockResolvedValue(null);
+
+      prismaMock.workingHours.findFirst.mockResolvedValue({
+        businessId,
+        startMinute: 9 * 60,
+        endMinute: 17 * 60,
+      });
 
       await expect(
         service.validate(businessId, date.start, date.end),
@@ -41,8 +51,8 @@ describe('blocksOverlapValidator', () => {
       expect(prismaMock.availabilityBlock.findFirst).toHaveBeenCalledWith({
         where: {
           businessId,
-          endTime: { gt: date.start },
-          startTime: { lt: date.end },
+          endTime: { gt: date.start.toUTC().toJSDate() },
+          startTime: { lt: date.end.toUTC().toJSDate() },
         },
       });
     });
@@ -51,8 +61,8 @@ describe('blocksOverlapValidator', () => {
       prismaMock.availabilityBlock.findFirst.mockResolvedValue({
         id: 1,
         businessId,
-        startTime: new Date('2026-06-15T09:30:00'),
-        endTime: new Date('2026-06-15T10:30:00'),
+        start: DateTime.fromISO('2026-06-15T09:30:00'),
+        end: DateTime.fromISO('2026-06-15T10:30:00'),
       });
 
       await expect(
