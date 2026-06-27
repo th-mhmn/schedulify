@@ -17,7 +17,7 @@ export class BusinessesService {
   async create(dto: CreateBusinessDto, userId: number) {
     const { name, timezone } = dto;
 
-    await this.businessValidator.validateExisting(name);
+    await this.businessValidator.validateExisting(name, userId);
 
     await this.updateRole(userId);
 
