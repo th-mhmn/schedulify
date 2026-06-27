@@ -6,12 +6,14 @@ import {
   IsString,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export class CreateServiceDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
+  @MinLength(4)
   name: string;
 
   @IsNotEmpty()
