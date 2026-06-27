@@ -54,7 +54,12 @@ export class RoleGuard implements CanActivate {
 
   private extractResource(path: string): string | null {
     const paths = path.split('/');
-    if (paths.length > 1) return paths[1];
+    const isTest = paths[1] !== 'api';
+    if (isTest) {
+      // * then path doesn't have versioning
+      if (paths.length > 1) return paths[1];
+    }
+    if (paths.length > 3) return paths[3];
     return null;
   }
 }
