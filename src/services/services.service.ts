@@ -110,7 +110,7 @@ export class ServicesService {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
     });
-    if (!business) throw new NotFoundException('Business not found');
+    if (!business) throw new NotFoundException('business not found');
 
     const services = await this.prisma.service.findMany({
       where: { businessId },
