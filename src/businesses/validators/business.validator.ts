@@ -5,9 +5,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 export class BusinessValidator {
   constructor(private readonly prisma: PrismaService) {}
 
-  async validateExisting(name: string) {
+  async validateExisting(name: string, ownerId: number) {
     const existingByName = await this.prisma.business.findFirst({
-      where: { name },
+      where: { name, ownerId },
     });
     if (existingByName)
       throw new BadRequestException(
