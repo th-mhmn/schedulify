@@ -170,7 +170,6 @@ describe('Service Availability E2E', () => {
         .query({ date: '2026-06-22' });
 
       const slots: string[] = res.body.data.slots;
-
       // * Working hours close at 18:00, service duration is 60 minutes
       // * Last valid slot is 17:00 (17:00 + 60min = 18:00)
       expect(slots.includes('2026-06-22T17:00:00.000Z')).toBe(true);
@@ -180,6 +179,21 @@ describe('Service Availability E2E', () => {
       expect(slots.includes('2026-06-22T17:30:00.000Z')).toBe(false);
       expect(slots.includes('2026-06-22T17:55:00.000Z')).toBe(false);
       expect(slots.includes('2026-06-22T18:00:00.000Z')).toBe(false);
+    });
+    it('should not return slots that cannot complete before blocked time', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/businesses/${businessId}/services/${serviceId}/availability`)
+        .query({ date: '2026-06-22' });
+
+      const slots: string[] = res.body.data.slots;
+      // * Block hours start from 11:00, service duration is 60 minutes
+      // * Last valid slot before block is 10:00 (10:00 + 60min = 11:00)
+      expect(slots.includes('2026-06-22T10:00:00.000Z')).toBe(true);
+
+      // * 10:05 would end at 11:05, inside blocks hours - must not appear
+      expect(slots.includes('2026-06-22T10:05:00.000Z')).toBe(false);
+      expect(slots.includes('2026-06-22T10:25:00.000Z')).toBe(false);
+      expect(slots.includes('2026-06-22T10:55:00.000Z')).toBe(false);
     });
   });
 });
