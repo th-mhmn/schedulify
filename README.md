@@ -33,6 +33,7 @@ A production-grade NestJS 11 backend for a multi-tenant booking SaaS. Business o
 | Security        | Helmet, `@nestjs/throttler` (multi-tier), bcrypt    |
 | API Docs        | Swagger / OpenAPI via `@nestjs/swagger`             |
 | Infra           | Docker Compose (dev + prod), PostgreSQL, Redis      |
+| Testing         | Jest, Supertest (Unit / Integration / E2E)          |
 
 ---
 
@@ -84,6 +85,7 @@ src/
 ├── resource/          # Shared authorization logic
 ├── generated/prisma/  # Prisma client + generated models
 ├── _core/             # Decorators, interceptors (idempotency, transform), filters, utils
+├── test/              # E2E & integration test suites (auth, booking, business, service, working-hours, blocks)
 ├── prisma.service.ts
 ├── app.module.ts
 └── main.ts
@@ -214,7 +216,6 @@ GET    /businesses/:id/working-hours
 ```
 POST   /bookings
 GET    /bookings/me
-GET    /businesses/:id/bookings
 POST   /bookings/:id/cancel
 ```
 
@@ -282,6 +283,7 @@ POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_HOST=
 POSTGRES_PORT=
+DATABASE_URL=
 
 REDIS_HOST=
 REDIS_PORT=
@@ -301,10 +303,9 @@ THROTTLE_MEDIUM_LIMIT=
 THROTTLE_LONG_TTL=
 THROTTLE_LONG_LIMIT=
 
-PORT=
-NODE_ENV=
 
-DATABASE_URL=
+PORT=
+
 ```
 
 ---
@@ -313,7 +314,6 @@ DATABASE_URL=
 
 - Notification delivery is scaffolded (logs only) — email/push not yet connected
 - No WebSocket real-time events yet (planned)
-- No unit or integration tests yet (booking conflict engine is isolated and ready to test)
 - No tenant-level DB isolation (multi-business separation is logical, not physical)
 - No production structured logging with request IDs yet
 
