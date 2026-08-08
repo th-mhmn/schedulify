@@ -57,6 +57,12 @@
 - [x] Global exception filter — structured error responses
 - [x] Global response transform interceptor — consistent API shape
 
+#### Testing
+
+- [x] Unit tests for booking conflict logic (full engine coverage)
+- [x] Integration tests for core services (4 files, 30 tests)
+- [x] E2E tests for all major flows (6 files, 60 tests)
+
 ---
 
 ## 🔲 Roadmap (Resume-Optimized Improvements)
