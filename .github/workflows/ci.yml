@@ -36,6 +36,10 @@ jobs:
         run: |
           printf '%s' '${{ secrets.TEST_SECRETS }}' > .env.test
 
+      - name: Create E2E environment
+        run: |
+          printf '%s' '${{ secrets.ENV_E2E }}' > .env.e2e
+
       - name: Start test infrastructure
         run: pnpm test:db:start
 
