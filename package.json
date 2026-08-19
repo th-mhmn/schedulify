@@ -22,8 +22,8 @@
     "test:int": "dotenv -e .env.test -- node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest.integration.config.ts --runInBand --detectOpenHandles",
     "test:e2e": "dotenv -e .env.e2e -- node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.config.ts --runInBand --detectOpenHandles",
     "prisma:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
-    "prisma:test:push": "dotenv -e .env.test -- prisma db push",
-    "prisma:e2e:deploy": "dotenv -e .env.e2e -- prisma migrate deploy"
+    "prisma:test:e2e:deploy": "dotenv -e .env.e2e -- prisma migrate deploy",
+    "prisma:test:push": "dotenv -e .env.test -- prisma db push"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",

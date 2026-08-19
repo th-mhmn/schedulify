@@ -32,28 +32,25 @@ jobs:
       - name: Generate Prisma client
         run: DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder pnpm prisma generate
 
-      - name: Create test environment
+      - name: Create integration test environment
         run: |
           printf '%s' '${{ secrets.TEST_SECRETS }}' > .env.test
 
-      - name: Create E2E environment
+      - name: Create E2E test environment
         run: |
           printf '%s' '${{ secrets.ENV_E2E }}' > .env.e2e
-
-      - name: Debug test infrastructure
-        if: always()
-        run: |
-          docker compose -f docker-compose.test.yml ps
-          docker compose -f docker-compose.test.yml logs
 
       - name: Start test infrastructure
         run: pnpm test:db:start
 
+      - name: Run integration database migrations
+        run: pnpm prisma:test:deploy
+
       - name: Run integration tests
         run: pnpm test:int
 
-      - name: Run E2E migrations
-        run: pnpm prisma:e2e:deploy
+      - name: Run e2e database migrations
+        run: pnpm prisma:test:e2e:deploy
 
       - name: Run E2E tests
         run: pnpm test:e2e
