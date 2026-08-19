@@ -40,12 +40,11 @@ jobs:
         run: |
           printf '%s' '${{ secrets.ENV_E2E }}' > .env.e2e
 
-      - name: Create E2E database
+      - name: Debug test infrastructure
+        if: always()
         run: |
-          docker exec postgres_test psql \
-            -U test \
-            -d postgres \
-            -c "CREATE DATABASE schedulify_e2e;"
+          docker compose -f docker-compose.test.yml ps
+          docker compose -f docker-compose.test.yml logs
 
       - name: Start test infrastructure
         run: pnpm test:db:start
