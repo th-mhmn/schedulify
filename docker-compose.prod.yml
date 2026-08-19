@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/th-mhmn/schedulify:${IMAGE_TAG:-latest}
     container_name: schedulify-app
     restart: always
     ports:
