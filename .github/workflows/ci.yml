@@ -110,6 +110,12 @@ jobs:
               -u "${{ secrets.GHCR_USERNAME }}" \
               --password-stdin
 
-            IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose.prod.yml pull app
+            IMAGE_TAG=${{ github.sha }} docker compose \
+            --env-file .env.prod \
+            -f docker-compose.prod.yml \
+            pull app
 
-            IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose.prod.yml up -d app
+            IMAGE_TAG=${{ github.sha }} docker compose \
+              --env-file .env.prod \
+              -f docker-compose.prod.yml \
+              up -d app
