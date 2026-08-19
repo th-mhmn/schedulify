@@ -40,14 +40,21 @@ jobs:
         run: |
           printf '%s' '${{ secrets.ENV_E2E }}' > .env.e2e
 
+      - name: Create E2E database
+        run: |
+          docker exec postgres_test psql \
+            -U test \
+            -d postgres \
+            -c "CREATE DATABASE schedulify_e2e;"
+
       - name: Start test infrastructure
         run: pnpm test:db:start
 
-      - name: Run database migrations
-        run: pnpm prisma:test:deploy
-
       - name: Run integration tests
         run: pnpm test:int
+
+      - name: Run E2E migrations
+        run: pnpm prisma:e2e:deploy
 
       - name: Run E2E tests
         run: pnpm test:e2e
