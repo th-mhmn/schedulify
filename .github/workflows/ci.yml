@@ -29,14 +29,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Start test infrastructure
-        run: docker compose -f docker-compose.test.yml up -d postgres_test redis_test
-
       - name: Generate Prisma client
         run: DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder pnpm prisma generate
 
+      - name: Create test environment
+        run: |
+          printf '%s' '${{ secrets.TEST_SECRETS }}' > .env.test
+
       - name: Start test infrastructure
-        run: docker compose -f docker-compose.test.yml up -d postgres_test redis_test
+        run: pnpm test:db:start
+
+      - name: Run database migrations
+        run: pnpm prisma:test:deploy
 
       - name: Run integration tests
         run: pnpm test:int
