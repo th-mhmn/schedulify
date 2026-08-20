@@ -21,7 +21,7 @@ export class BlocksController {
   @Endpoint({
     summary: 'Delete an availability block',
     auth: true,
-    params: [{ name: 'id', type: Number, example: 1 }],
+    params: [{ name: 'id', type: Number, example: 2 }],
     successStatus: 204,
     successDescription: 'Block deleted successfully',
     requireOwnership: true,
