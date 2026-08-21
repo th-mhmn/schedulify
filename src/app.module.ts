@@ -1,22 +1,21 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerBehindProxyGuard } from './_core/guards/throttler-behind-proxy.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { BusinessesModule } from './businesses/businesses.module';
-import { ServicesModule } from './services/services.module';
-import { BookingsModule } from './bookings/bookings.module';
-import { ResourceModule } from './resource/resource.module';
-import { WorkingHoursModule } from './working-hours/working-hours.module';
 import { BlocksModule } from './blocks/blocks.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { QueueModule } from './queue/queue.module';
+import { BookingsModule } from './bookings/bookings.module';
+import { BusinessesModule } from './businesses/businesses.module';
 import { NotificationModule } from './notifications/notification.module';
-import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerBehindProxyGuard } from './_core/guards/throttler-behind-proxy.guard';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { HealthModule } from './health/health.module';
+import { QueueModule } from './queue/queue.module';
+import { ResourceModule } from './resource/resource.module';
+import { ServicesModule } from './services/services.module';
+import { UsersModule } from './users/users.module';
+import { WorkingHoursModule } from './working-hours/working-hours.module';
 @Module({
   imports: [
     CacheModule.register({ isGlobal: true }),
@@ -55,7 +54,7 @@ import { HealthModule } from './health/health.module';
     WorkingHoursModule,
     BlocksModule,
     NotificationModule,
-    HealthModule,
+    // HealthModule,
   ],
   controllers: [AppController],
   providers: [
