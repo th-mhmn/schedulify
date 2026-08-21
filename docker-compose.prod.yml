@@ -1,6 +1,14 @@
 services:
   app:
     image: ghcr.io/th-mhmn/schedulify:${IMAGE_TAG:-latest}
+
+    healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:${PORT}/api/v1/health/live"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 15s
+
     container_name: schedulify-app
     restart: always
     ports:
