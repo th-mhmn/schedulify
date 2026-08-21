@@ -8,6 +8,7 @@ import {
 } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
 import { PrismaService } from '../prisma.service';
+import { RedisHealthIndicator } from './redis.health';
 
 @SkipThrottle()
 @Controller('health')
@@ -18,7 +19,7 @@ export class HealthController {
     private readonly prisma: PrismaService,
     private readonly disk: DiskHealthIndicator,
     private readonly memory: MemoryHealthIndicator,
-    // private readonly redisHealth: RedisHealthIndicator,
+    private readonly redisHealth: RedisHealthIndicator,
   ) {}
 
   @Get('live')
@@ -34,7 +35,7 @@ export class HealthController {
   ready() {
     return this.health.check([
       () => this.prismaHealth.pingCheck('database', this.prisma),
-      // () => this.redisHealth.isHealthy('redis'),
+      () => this.redisHealth.isHealthy('redis'),
       () =>
         this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.9 }),
       () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
