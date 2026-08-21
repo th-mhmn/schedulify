@@ -167,6 +167,11 @@ Auth controller has a dedicated, stricter throttle configuration applied at the 
 **Base prefix:** `/api/v1`
 **Swagger UI:** `/api/v1/docs` (Bearer auth supported)
 
+## Health Checks
+
+- `GET /api/v1/health/live` — liveness probe (process running)
+- `GET /api/v1/health/ready` — readiness probe (DB, Redis, disk, memory)
+
 ### Auth
 
 ```
