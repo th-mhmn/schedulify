@@ -34,6 +34,7 @@ A production-grade NestJS 11 backend for a multi-tenant booking SaaS. Business o
 | API Docs        | Swagger / OpenAPI via `@nestjs/swagger`             |
 | Infra           | Docker Compose (dev + prod), PostgreSQL, Redis      |
 | Testing         | Jest, Supertest (Unit / Integration / E2E)          |
+| CI/CD           | GitHub Actions (CI, Docker build, VPS deploy)       |
 
 ---
 
@@ -241,6 +242,16 @@ DELETE /blocks/:id
 - Custom decorators: ISO datetime, time-range, duplicate-day prevention
 - Global exception filter — structured, consistent error responses
 - Global response transform interceptor — consistent API shape
+
+---
+
+## CI/CD Pipeline
+
+Three GitHub Actions workflows:
+
+- **CI** — runs on every push: lint, build, and full test suite (unit, integration, E2E)
+- **Docker Build** — builds and pushes the production Docker image to registry
+- **Deploy** — SSHs into the VPS and pulls the latest image, zero-downtime redeploy
 
 ---
 

@@ -65,6 +65,12 @@
 
 ---
 
+#### CI Pipeline
+
+- [x] CI pipeline — GitHub Actions (CI → Docker build → VPS deploy)
+
+---
+
 ## 🔲 Roadmap (Resume-Optimized Improvements)
 
 Prioritized by resume / portfolio impact. Each item adds a concrete, demonstrable engineering pattern.
@@ -151,15 +157,6 @@ BullMQ supports delayed jobs natively — this is a small addition.
 
 - [ ] Cursor or offset-based pagination on `/businesses`, `/bookings/me`, `/businesses/:id/bookings`
 - [ ] Consistent pagination envelope in response shape
-
-#### 10. CI Pipeline
-
-- [ ] GitHub Actions workflow: lint → test → build → Docker image push
-- [ ] Badge in README
-
-> **Why it matters:** Makes the repo look production-ready at a glance.
-
----
 
 ## Roles
 
