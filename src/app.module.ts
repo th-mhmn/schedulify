@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { BusinessesModule } from './businesses/businesses.module';
+import { HealthModule } from './health/health.module';
 import { NotificationModule } from './notifications/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { ResourceModule } from './resource/resource.module';
@@ -54,7 +55,7 @@ import { WorkingHoursModule } from './working-hours/working-hours.module';
     WorkingHoursModule,
     BlocksModule,
     NotificationModule,
-    // HealthModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
