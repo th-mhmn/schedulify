@@ -1,11 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
-import cookieParser from 'cookie-parser';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { GlobalExceptionFilter } from './_core/filters/global-exception.filter';
-import helmet from 'helmet';
+import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { GlobalExceptionFilter } from './_core/filters/global-exception.filter';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -43,6 +43,9 @@ async function bootstrap() {
 
   // * Cookie Parser
   app.use(cookieParser());
+
+  // * Starts listening for shutdown hooks
+  app.enableShutdownHooks();
 
   //* Swagger
   const config = new DocumentBuilder()
