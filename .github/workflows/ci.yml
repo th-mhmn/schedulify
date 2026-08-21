@@ -119,3 +119,8 @@ jobs:
               --env-file .env.prod \
               -f docker-compose.prod.yml \
               up -d app
+      - name: Verify deployment health
+        run: |
+          sleep 15  # give the container time to start
+          curl --fail --retry 5 --retry-delay 5 \
+            https://schedulify.tmehmandoust.com/api/v1/health/live || exit 1
