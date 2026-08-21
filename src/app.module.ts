@@ -16,6 +16,7 @@ import { NotificationModule } from './notifications/notification.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerBehindProxyGuard } from './_core/guards/throttler-behind-proxy.guard';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { HealthModule } from './health/health.module';
 @Module({
   imports: [
     CacheModule.register({ isGlobal: true }),
@@ -54,6 +55,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     WorkingHoursModule,
     BlocksModule,
     NotificationModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
