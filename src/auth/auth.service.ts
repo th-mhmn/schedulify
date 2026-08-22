@@ -35,6 +35,7 @@ export class AuthService {
 
     let user;
     try {
+      this.logger.log('Creating User in the Database');
       user = await this.usersService.createUser({
         email,
         passwordHash,

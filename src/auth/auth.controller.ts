@@ -8,6 +8,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   Res,
   UseGuards,
@@ -23,6 +24,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
   @Endpoint({
@@ -34,6 +36,7 @@ export class AuthController {
   @TransformDTO(ResponseUserDto)
   @Post('sign-up')
   signUp(@Res({ passthrough: true }) response, @Body() signUpDto: SignUpDto) {
+    this.logger.log('Signing Up');
     return this.authService.signUp(signUpDto, response);
   }
 
@@ -51,6 +54,7 @@ export class AuthController {
     @CurrentUser() user: IUserPayload,
     @Res({ passthrough: true }) response,
   ) {
+    this.logger.log('Signing In');
     return this.authService.signIn(user, response);
   }
 
@@ -69,6 +73,7 @@ export class AuthController {
     @CurrentUser() user: IUserPayload,
     @Res({ passthrough: true }) response,
   ) {
+    this.logger.log(`Refreshing token - user id: ${user.id}`);
     return this.authService.signIn(user, response);
   }
 
