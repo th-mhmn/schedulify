@@ -4,11 +4,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { Logger } from 'nestjs-pino';
 import { GlobalExceptionFilter } from './_core/filters/global-exception.filter';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
 
   //* Helmet
   app.use(helmet());
@@ -21,6 +24,9 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5000'],
     credentials: true,
   });
+
+  // * Pino Logger
+  app.useLogger(app.get(Logger));
 
   // * Pipes
   app.useGlobalPipes(
