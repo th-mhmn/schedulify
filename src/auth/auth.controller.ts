@@ -36,7 +36,6 @@ export class AuthController {
   @TransformDTO(ResponseUserDto)
   @Post('sign-up')
   signUp(@Res({ passthrough: true }) response, @Body() signUpDto: SignUpDto) {
-    this.logger.log('Signing Up');
     return this.authService.signUp(signUpDto, response);
   }
 
@@ -54,7 +53,6 @@ export class AuthController {
     @CurrentUser() user: IUserPayload,
     @Res({ passthrough: true }) response,
   ) {
-    this.logger.log('Signing In');
     return this.authService.signIn(user, response);
   }
 
@@ -73,7 +71,12 @@ export class AuthController {
     @CurrentUser() user: IUserPayload,
     @Res({ passthrough: true }) response,
   ) {
-    this.logger.log(`Refreshing token - user id: ${user.id}`);
+    this.logger.debug(
+      {
+        userId: user.id,
+      },
+      'Access token refreshed',
+    );
     return this.authService.signIn(user, response);
   }
 

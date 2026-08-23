@@ -13,7 +13,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
+  private readonly logger = new Logger(AuthService.name, { timestamp: true });
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -35,11 +35,16 @@ export class AuthService {
 
     let user;
     try {
-      this.logger.log('Creating User in the Database');
       user = await this.usersService.createUser({
         email,
         passwordHash,
       });
+      this.logger.log(
+        {
+          userId: user.id,
+        },
+        'User registered',
+      );
     } catch (e: any) {
       if (e?.code === 'P2002')
         throw new BadRequestException('Email already registered');
@@ -99,6 +104,12 @@ export class AuthService {
         where: { id: userId },
         data: { refreshToken: null },
       });
+      this.logger.log(
+        {
+          userId,
+        },
+        'User logged out',
+      );
     } catch (error: any) {
       this.logger.error('Sign out error:', {
         error: error.message,
@@ -135,7 +146,12 @@ export class AuthService {
       }
       return user;
     } catch (error) {
-      this.logger.error('Verify user error', error);
+      this.logger.warn(
+        {
+          email,
+        },
+        'Failed login attempt',
+      );
       throw new UnauthorizedException('Credentials are not valid');
     }
   }
@@ -188,6 +204,13 @@ export class AuthService {
         secure: isProd,
         expires: expiresRefreshToken,
       });
+
+      this.logger.log(
+        {
+          userId: user.id,
+        },
+        'User logged in',
+      );
 
       return { user: userData };
     } catch (error: any) {
