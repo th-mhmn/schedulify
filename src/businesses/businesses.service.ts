@@ -1,6 +1,6 @@
 import { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
@@ -9,6 +9,10 @@ import { BusinessValidator } from './validators/business.validator';
 
 @Injectable()
 export class BusinessesService {
+  private readonly logger = new Logger(BusinessesService.name, {
+    timestamp: true,
+  });
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly businessValidator: BusinessValidator,
@@ -22,6 +26,14 @@ export class BusinessesService {
     await this.updateRole(userId);
 
     const business = await this.createBusinessRecord(name, timezone, userId);
+
+    this.logger.log(
+      {
+        businessId: business.id,
+        ownerId: userId,
+      },
+      'Business created',
+    );
 
     return { business };
   }
@@ -108,6 +120,12 @@ export class BusinessesService {
         where: { id },
         data: { role: 'BUSINESS_OWNER' },
       });
+      this.logger.log(
+        {
+          userId: id,
+        },
+        'User role updated',
+      );
     } catch {
       throw new NotFoundException('User not found');
     }
