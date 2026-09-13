@@ -23,7 +23,11 @@
     "test:e2e": "dotenv -e .env.e2e -- node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.config.ts --runInBand --detectOpenHandles",
     "prisma:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
     "prisma:test:e2e:deploy": "dotenv -e .env.e2e -- prisma migrate deploy",
-    "prisma:test:push": "dotenv -e .env.test -- prisma db push"
+    "prisma:test:push": "dotenv -e .env.test -- prisma db push",
+    "prisma:generate": "dotenv -e .env.local -- prisma generate",
+    "migrate:dev": "dotenv -e .env.local -- prisma migrate dev",
+    "migrate:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "migrate:studio": "dotenv -e .env.local -- prisma studio"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
