@@ -3,6 +3,7 @@ import { PrismaService } from '@/prisma.service';
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { DateTime } from 'luxon';
@@ -15,6 +16,9 @@ import { BookingWorkingHoursValidator } from './validators/booking-working-hours
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name, {
+    timestamp: true,
+  });
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationQueue: NotificationQueue,
@@ -45,8 +49,14 @@ export class BookingsService {
       userId,
       businessId,
     );
-
+    this.logger.log(
+      {
+        bookingId: booking.id,
+      },
+      'Booking completed',
+    );
     await this.notificationQueue.enqueueBookingCreated(booking.id);
+
     return { booking };
   }
 
@@ -80,10 +90,19 @@ export class BookingsService {
     });
     if (!business) throw new NotFoundException('Business not found');
 
-    if (business.ownerId === userId)
+    if (business.ownerId === userId) {
+      this.logger.warn(
+        {
+          userId,
+          businessId,
+        },
+        'Booking rejected due to self reservation attempt',
+      );
       throw new ConflictException(
         'You cannot book a reservation for your own service',
       );
+    }
+
     return business;
   }
 
@@ -108,8 +127,17 @@ export class BookingsService {
         dayOfWeek,
       },
     });
-    if (!workingHours)
+    if (!workingHours) {
+      this.logger.warn(
+        {
+          businessId,
+          dayOfWeek,
+        },
+        'Booking rejected outside working day schedule',
+      );
       throw new ConflictException('Business is closed on this day');
+    }
+
     return workingHours;
   }
 

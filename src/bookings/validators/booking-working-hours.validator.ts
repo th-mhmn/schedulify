@@ -1,11 +1,15 @@
 import { extractHourMinute } from '@/_core/utils/time.utils';
 import { WorkingHours } from '@/generated/prisma/client';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { BookingWindow } from '../types/booking-window.type';
 
 @Injectable()
 export class BookingWorkingHoursValidator {
+  private readonly logger = new Logger(BookingWorkingHoursValidator.name, {
+    timestamp: true,
+  });
+
   validate(workingHours: WorkingHours, bookingWindow: BookingWindow): void {
     const { startDate, endDate } = bookingWindow;
     const { day, month, year } = startDate;
@@ -38,7 +42,15 @@ export class BookingWorkingHoursValidator {
       { zone: startDate.zone },
     );
 
-    if (closeAt < endDate || openAt > startDate)
+    if (closeAt < endDate || openAt > startDate) {
+      this.logger.warn(
+        {
+          startTime: bookingWindow.startDate,
+          endTime: bookingWindow.endDate,
+        },
+        'Booking rejected outside working hours',
+      );
       throw new BadRequestException('Outside working hours');
+    }
   }
 }
