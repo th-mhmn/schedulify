@@ -5,6 +5,7 @@ import { PrismaService } from '@/prisma.service';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { DateTime } from 'luxon';
@@ -13,6 +14,9 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 
 @Injectable()
 export class ServicesService {
+  private readonly logger = new Logger(ServicesService.name, {
+    timestamp: true,
+  });
   constructor(private readonly prisma: PrismaService) {}
   async create(businessId: number, dto: CreateServiceDto) {
     const { durationMinutes, name, priceCents } = dto;
@@ -40,6 +44,14 @@ export class ServicesService {
         maxWait: 5000,
         timeout: 10000,
       },
+    );
+
+    this.logger.log(
+      {
+        serviceId: service.id,
+        businessId: service.businessId,
+      },
+      'Service created',
     );
 
     return { service };
