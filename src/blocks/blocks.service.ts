@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma.service';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { DateTime } from 'luxon';
@@ -12,6 +13,7 @@ import { BlocksOverlapService } from './validators/blocks-overlap.validator';
 
 @Injectable()
 export class BlocksService {
+  private readonly logger = new Logger(BlocksService.name, { timestamp: true });
   constructor(
     private readonly prisma: PrismaService,
     private readonly blocksOverlap: BlocksOverlapService,
@@ -32,6 +34,12 @@ export class BlocksService {
       end.toUTC().toJSDate(),
       reason,
     );
+
+    this.logger.log(
+      { blockId: block.id, businessId },
+      'Block created successfully',
+    );
+
     return { block };
   }
 
