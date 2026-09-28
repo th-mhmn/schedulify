@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/schedulify
+            cd ~/schedulify
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
               -u "${{ secrets.GHCR_USERNAME }}" \
